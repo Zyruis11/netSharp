@@ -1,8 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Net.Sockets;
 
-namespace TcpIpServer
+namespace TcpIpServer.Classes
 {
     internal class Client : IDisposable
     {
@@ -13,6 +12,7 @@ namespace TcpIpServer
         public bool IsDisposed;
         public bool Alive;
         public int LastHeard;
+        public string CurrentStatus;
 
         public Request clientRequest;
 

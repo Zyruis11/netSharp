@@ -4,7 +4,7 @@ using System.Net;
 using System.Threading;
 using System.Timers;
 
-namespace TcpIpServer
+namespace TcpIpServer.Classes
 {
     internal class Server
     {
@@ -16,8 +16,8 @@ namespace TcpIpServer
         private int _logicalCoreCount;
         private int _maxClientCount;
         public int _maxClientRequests;
-        public int _currentClientRequests;
         public bool IsInitialized;
+        public RequestBroker requestBroker;
         private ServerListener serverListener;
         private System.Timers.Timer clientTimer;
 
@@ -37,14 +37,16 @@ namespace TcpIpServer
             IsInitialized = true;
 
             clientTimer = new System.Timers.Timer();
-            clientTimer.Elapsed += new ElapsedEventHandler(clientTimerTick);
-            clientTimer.Interval = 5000;
+            clientTimer.Elapsed += new ElapsedEventHandler(ClientTimerTick);
+            clientTimer.Interval = 1000;
             clientTimer.Enabled = true;
+
+            requestBroker = new RequestBroker(_maxClientRequests);
 
             Console.Write("Started at {0} \nListening for clients...\n\n", DateTime.Now);
         }
 
-        private void clientTimerTick(object source, ElapsedEventArgs eea)
+        private void ClientTimerTick(object source, ElapsedEventArgs eea)
         {
             // This list will be used to hold references to the clients that can be disposed.
             List<Client> clientsToDispose = new List<Client>();
@@ -54,9 +56,9 @@ namespace TcpIpServer
             {
                 foreach (Client client in clientList)
                 {
-                    client.LastHeard += 5;
+                    client.LastHeard += 1;
 
-                    if (client.LastHeard > 60)
+                    if (client.LastHeard >= 30)
                     {
                         client.Alive = false;
                         clientsToDispose.Add(client);
@@ -172,6 +174,26 @@ namespace TcpIpServer
             removeSuccess = true;
 
             return removeSuccess;
+        }
+
+        public bool AddClientRequest(string guid)
+        {
+            bool returnBool;
+            lock (requestBroker)
+            {
+               returnBool = requestBroker.AddRequest(guid);
+            }
+            return returnBool;
+        }
+
+        public bool RemoveClientRequest(string guid)
+        {
+            bool returnBool;
+            lock (requestBroker)
+            {
+                returnBool = requestBroker.RemoveRequest(guid);
+            }
+            return returnBool;
         }
 
         private void CheckEnvironment()
