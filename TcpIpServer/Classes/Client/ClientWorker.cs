@@ -17,8 +17,8 @@ namespace TcpIpServer.Classes
         public ClientWorker(Client client)
         {
             _client = client;
-            _tcpClient = _client._tcpClient;
-            _clientListenerThread = new Thread(Start);
+            _tcpClient = _client.TcpClient;
+            _clientListenerThread = new Thread(RecieverLoop);
             _clientListenerThread.Start();
         }
 
@@ -28,7 +28,7 @@ namespace TcpIpServer.Classes
             IsDisposed = true;
         }
 
-        private void Start()
+        private void RecieverLoop()
         {
             _clientStream = _tcpClient.GetStream();
 
@@ -63,7 +63,7 @@ namespace TcpIpServer.Classes
 
         public void ClientRequestHandler(string clientString)
         {
-            _client.LastHeard = 0;
+            
 
             if (clientString.ToUpper() == "TEST")
             {
@@ -71,15 +71,27 @@ namespace TcpIpServer.Classes
                 return;
             }
 
+            if (clientString.ToUpper() == "CLIENT_HELLO")
+            {
+                Responder("CLIENT_HELLO_ACK");
+                return;
+            }
+
+            if (clientString.ToUpper() == "SERVER_HELLO_ACK")
+            {
+                _client.LastHeard = 0;
+                return;
+            }
+
             var request = new Request(clientString);
 
-            var requestAdded = _client._server.AddClientRequest(_client.guid);
+            var requestAdded = _client.Server.AddClientRequest(_client.Guid);
 
             if (requestAdded)
             {
                 WorkSimulator(request);
                 _client.CurrentStatus = "Processing Request";
-                _client._server.RemoveClientRequest(_client.guid);
+                _client.Server.RemoveClientRequest(_client.Guid);
                 Responder(request.ResponseVar);
             }
             else if (!requestAdded)
