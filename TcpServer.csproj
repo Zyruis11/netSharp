@@ -1,0 +1,228 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
+    <ProjectGuid>{7F607FB4-8B44-4512-BC70-839EAFF6E8D1}</ProjectGuid>
+    <OutputType>Exe</OutputType>
+    <NoStandardLibraries>false</NoStandardLibraries>
+    <AssemblyName>ConsoleApplication</AssemblyName>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <TargetFrameworkProfile>Client</TargetFrameworkProfile>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <PlatformTarget>x86</PlatformTarget>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x86' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <PlatformTarget>x86</PlatformTarget>
+  </PropertyGroup>
+  <PropertyGroup>
+    <RootNamespace>TcpServer</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="System.Xml" />
+    <Reference Include="System.Xml.Linq" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include=".gitattributes" />
+    <None Include=".gitignore" />
+    <None Include=".git\config" />
+    <None Include=".git\description" />
+    <None Include=".git\FETCH_HEAD" />
+    <None Include=".git\HEAD" />
+    <None Include=".git\hooks\README.sample" />
+    <None Include=".git\index" />
+    <None Include=".git\info\exclude" />
+    <None Include=".git\logs\HEAD" />
+    <None Include=".git\logs\refs\heads\master" />
+    <None Include=".git\logs\refs\remotes\origin\master" />
+    <None Include=".git\objects\01\29d6db03afe82128369ed05090cb389309fe70" />
+    <None Include=".git\objects\01\2cb5ca79d88755ce799d52d4f17f2e383b5a74" />
+    <None Include=".git\objects\02\9b6053f54fc3a823014a2e1928ef99e3de8bf1" />
+    <None Include=".git\objects\03\204f8e6b9f8532e4b90b884282332a2883c1eb" />
+    <None Include=".git\objects\03\c01929855f779e4917a58d82eab174f988b3e7" />
+    <None Include=".git\objects\07\2c6bbdd97b4f48e46536e0f59aef01de5ebf97" />
+    <None Include=".git\objects\09\2b197f657d92ac817884327289e58d06a66f21" />
+    <None Include=".git\objects\0f\159ff5a0536ba23151b2e364ab4acea4df4ba0" />
+    <None Include=".git\objects\10\0747c9ce268736899ab5c946814146bdd8816b" />
+    <None Include=".git\objects\12\bc1be50928930620248e7f3994fe38d0397c75" />
+    <None Include=".git\objects\14\12c53a8f0dc8e66643bb02ffd4af2c935c4d83" />
+    <None Include=".git\objects\19\586ba5e61636eddcc17a9ff2e986e02ff915be" />
+    <None Include=".git\objects\1f\f0c423042b46cb1d617b81efb715defbe8054d" />
+    <None Include=".git\objects\27\ea333152f5bbd802533cf3643d8aec5f3109d4" />
+    <None Include=".git\objects\29\a26b8f0c40efb352492e11b7364c0538b60b6c" />
+    <None Include=".git\objects\2c\a884b6bf0f3045cf87aa731299dd55422a6eb2" />
+    <None Include=".git\objects\2d\3944fe69ccc84643919e80f1af021394e54711" />
+    <None Include=".git\objects\2e\34d2fe45f19ee894902a88133738bbb3e4fc6c" />
+    <None Include=".git\objects\30\71f7260d336ac6674559cd08f8cddb84901102" />
+    <None Include=".git\objects\30\bdc8e25f4d3dfbf12c96586de64b91d4abd185" />
+    <None Include=".git\objects\32\79cc781aa6884ff938dea4f3117bac1fdd75a0" />
+    <None Include=".git\objects\33\aa248c6dac6beca7f78c2df0e88ca0d1b318f8" />
+    <None Include=".git\objects\38\03de10dc1762d3c4c74f85812433d43886253e" />
+    <None Include=".git\objects\39\ad8a71125f9b5ab8a67b3a3b907037e301181b" />
+    <None Include=".git\objects\3b\f9d7486f2a8a61b32102c549d461ac45ae78b5" />
+    <None Include=".git\objects\40\c5cb6c20f14d36922143ca0bd0602ff951d677" />
+    <None Include=".git\objects\41\e9323804c9638f1b534ce8c972c41e59959e27" />
+    <None Include=".git\objects\46\c7f12db7bad44dfeaca7274e5ef36b5be90fef" />
+    <None Include=".git\objects\4a\6f815482c135d46baf2b34aa64570b6b4acdb9" />
+    <None Include=".git\objects\4b\4b14862376de61788ac161cb643fd926e3ccc3" />
+    <None Include=".git\objects\4c\1648fe2313343e9f1935e3be3be55806d8b17f" />
+    <None Include=".git\objects\52\7056e33827fb79969e044fbff5b4a0127324d3" />
+    <None Include=".git\objects\54\34de757293e7243161bc62a502f2369fbce0be" />
+    <None Include=".git\objects\56\65e2997d0ceb55f106445c1631c9c6dd501e36" />
+    <None Include=".git\objects\59\9bd5a8870d5b0e1e978844fd1f760f8bd3360d" />
+    <None Include=".git\objects\5c\73fc531ba991590c2a1f5e6cf8219bd35c52d6" />
+    <None Include=".git\objects\68\f5ca5db999129da148221d107676a9a39ac139" />
+    <None Include=".git\objects\6a\6a042371616f69a16f49f1ca4b7ca3b64e03f0" />
+    <None Include=".git\objects\6c\e4e54202bf5b1ec97e40d454768d2bf8bece1f" />
+    <None Include=".git\objects\73\5e2de4ffceba8d42591a834b51f37ea87b68c0" />
+    <None Include=".git\objects\75\7550bdba2fa37decc564d6e209b2f55c6fda13" />
+    <None Include=".git\objects\77\c05cdbbcde422eb831fa5b81e981ff10e52b4a" />
+    <None Include=".git\objects\79\6453635bb4bde2a32b55293fff153807954def" />
+    <None Include=".git\objects\7c\34e7d99d127f60222f44a69e93a0e54a98d7c1" />
+    <None Include=".git\objects\7e\04190091bc1487c8fcaafabb9ae7880039c942" />
+    <None Include=".git\objects\7e\10c5ac3b7cb6e96db5473ff5676e97a08eaf3d" />
+    <None Include=".git\objects\80\0316d083a80b7fcaf3d83af61c8263c4dddd65" />
+    <None Include=".git\objects\80\cba11599a1d68d92856c41b47fce50bfde2df0" />
+    <None Include=".git\objects\82\7fbe4aa36f10e98038c1712c4d8f6f13e864ba" />
+    <None Include=".git\objects\8c\6925907f6d07f60a060920c9f0a7eaadefbb7b" />
+    <None Include=".git\objects\8e\15646352ec1d9a84bbc6504ef6b46e16bf7823" />
+    <None Include=".git\objects\95\22e08c86441b56860b2fa1932a610257751bdd" />
+    <None Include=".git\objects\97\880728ed7c92d5fbc88eab92b861dcc550ad1e" />
+    <None Include=".git\objects\98\9d1ae0967326447838b40f2e65bd2486515e50" />
+    <None Include=".git\objects\9a\629d2c9003566af4c20aa28ebe7e92ab6f687f" />
+    <None Include=".git\objects\9a\af5b86f8e9eb7d8fe9805ec2626780eede5e04" />
+    <None Include=".git\objects\a4\a163ad1cc8a98b26a59e064462aaab6d759f89" />
+    <None Include=".git\objects\a9\e39dd29a6a97b512f9cba5b4831393e98c8182" />
+    <None Include=".git\objects\ac\a026d32206eaa5036f49c5b12bacdc0ca310e4" />
+    <None Include=".git\objects\b3\d1d14f7cad5b8cffc16fd96b1c79d7f9f2822f" />
+    <None Include=".git\objects\b4\286262fdc5745e37253c39564bfcdace97eba8" />
+    <None Include=".git\objects\b7\55556ec6799163a9a5b1b16f43e2ab34c0e736" />
+    <None Include=".git\objects\b7\7abc67a304e6fba08ef1d221f2ac0a68807ee8" />
+    <None Include=".git\objects\b7\ffaae8f20bb7b51ca7b037ef62eb113c6de021" />
+    <None Include=".git\objects\b9\61f87e7ab838fff37635868de583780299c72d" />
+    <None Include=".git\objects\be\23358f5f1f5268ac6b216842c7e16f70627c95" />
+    <None Include=".git\objects\bf\b05913ae4c66827a74849038e965f8c6adb1de" />
+    <None Include=".git\objects\c6\c6ef8de86ab0ed5e1160a6fd6e2df24bb48a53" />
+    <None Include=".git\objects\c8\158c68bd33da6365dc5b761ef716e4ada2e013" />
+    <None Include=".git\objects\c9\2058c669318b1278e9dfff19e4d2e03d56a619" />
+    <None Include=".git\objects\ca\bd348adbf6dc716e47d145a3059a7ab2f4fc94" />
+    <None Include=".git\objects\cb\ac48427999ac2bc42cc145ca34405b3618050d" />
+    <None Include=".git\objects\cc\de6802e2982904c21300e8209083fbe0477e6a" />
+    <None Include=".git\objects\d4\8524d8adb8a50110c9562f685219d37ee0baee" />
+    <None Include=".git\objects\d5\55ecb0741fbfa8bd94ffcd3f3930cdd1949874" />
+    <None Include=".git\objects\db\37641adc0eb945ecacf591482a196b25c4f5c6" />
+    <None Include=".git\objects\e1\ef59ff0d7e2ae9dfe78ebaedab9baa166fbad9" />
+    <None Include=".git\objects\e4\b4ee9bbadb5129e795799d800d2655384be656" />
+    <None Include=".git\objects\e6\0766a96f83d08b9d45be71a39782f24f0da743" />
+    <None Include=".git\objects\eb\1038fb1003d012e93add152ae4b7bb50051d26" />
+    <None Include=".git\objects\f3\6e42b7152d8f4be30fe3e3f9c0b157bca24fc9" />
+    <None Include=".git\objects\f5\73c44c051997dbe9e209c62abf73a273c1b4e8" />
+    <None Include=".git\objects\f6\e0eed2e1ae2f7924a327744dad93d12a804235" />
+    <None Include=".git\objects\f7\5990bb5d2bbfa349c64bf0aad4d95acc1e16f9" />
+    <None Include=".git\objects\f8\3b0d1a15986fb7338682a514874a5cc4b283d2" />
+    <None Include=".git\objects\f8\3dc5d67755e2ab328c4b8cb072712994d972f8" />
+    <None Include=".git\objects\f8\79ac4c9bbe01b1b0995e34abce17f63c589e27" />
+    <None Include=".git\objects\fb\0116f8f7b98c520c1e21a6afe18d4c9414ae5b" />
+    <None Include=".git\objects\fb\c9171d39489ca8363394f3d04e6a506e25adff" />
+    <None Include=".git\objects\fd\62248e62730e99001b75ba092f8c80ed176c80" />
+    <None Include=".git\objects\pack\pack-e2a4976161e651b725deaed5856b34072da50be3.idx" />
+    <None Include=".git\objects\pack\pack-e2a4976161e651b725deaed5856b34072da50be3.pack" />
+    <None Include=".git\ORIG_HEAD" />
+    <None Include=".git\refs\heads\master" />
+    <None Include=".git\refs\remotes\origin\master" />
+    <None Include="DebuggingClient\App.config" />
+    <None Include="DebuggingClient\bin\Debug\Client.exe.config" />
+    <None Include="DebuggingClient\bin\Debug\Client.vshost.exe.config" />
+    <None Include="DebuggingClient\bin\Debug\DebuggingClient.vshost.exe.config" />
+    <None Include="DebuggingClient\bin\Debug\DebuggingClient.vshost.exe.manifest" />
+    <None Include="DebuggingClient\obj\Debug\DebuggingClient.csprojResolveAssemblyReference.cache" />
+    <None Include="DebuggingClient\obj\Debug\DesignTimeResolveAssemblyReferencesInput.cache" />
+    <None Include="TcpIpServer\App.config" />
+    <None Include="TcpIpServer\bin\Debug\Server.exe.config" />
+    <None Include="TcpIpServer\bin\Debug\Server.vshost.exe.config" />
+    <None Include="TcpIpServer\bin\Debug\TcpIpServer.exe.config" />
+    <None Include="TcpIpServer\bin\Debug\TcpIpServer.vshost.exe.config" />
+    <None Include="TcpIpServer\bin\Debug\TcpIpServer.vshost.exe.manifest" />
+    <None Include="TcpIpServer\obj\Debug\DesignTimeResolveAssemblyReferences.cache" />
+    <None Include="TcpIpServer\obj\Debug\DesignTimeResolveAssemblyReferencesInput.cache" />
+    <None Include="TcpIpServer\obj\Debug\Server.csprojResolveAssemblyReference.cache" />
+    <None Include="TcpIpServer\obj\Debug\TcpIpServer.csprojResolveAssemblyReference.cache" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include=".git\ms-persist.xml" />
+    <Content Include="DebuggingClient\bin\Debug\Client.exe" />
+    <Content Include="DebuggingClient\bin\Debug\Client.pdb" />
+    <Content Include="DebuggingClient\bin\Debug\Client.vshost.exe" />
+    <Content Include="DebuggingClient\bin\Debug\DebuggingClient.vshost.exe" />
+    <Content Include="DebuggingClient\Client.csproj" />
+    <Content Include="DebuggingClient\obj\Debug\Client.csproj.FileListAbsolute.txt" />
+    <Content Include="DebuggingClient\obj\Debug\Client.exe" />
+    <Content Include="DebuggingClient\obj\Debug\Client.pdb" />
+    <Content Include="DebuggingClient\obj\Debug\DebuggingClient.csproj.FileListAbsolute.txt" />
+    <Content Include="TcpIpServer\bin\Debug\Server.exe" />
+    <Content Include="TcpIpServer\bin\Debug\Server.pdb" />
+    <Content Include="TcpIpServer\bin\Debug\Server.vshost.exe" />
+    <Content Include="TcpIpServer\bin\Debug\TcpIpServer.exe" />
+    <Content Include="TcpIpServer\bin\Debug\TcpIpServer.pdb" />
+    <Content Include="TcpIpServer\obj\Debug\Server.csproj.FileListAbsolute.txt" />
+    <Content Include="TcpIpServer\obj\Debug\Server.exe" />
+    <Content Include="TcpIpServer\obj\Debug\Server.pdb" />
+    <Content Include="TcpIpServer\obj\Debug\TcpIpServer.csproj.FileListAbsolute.txt" />
+    <Content Include="TcpIpServer\obj\Debug\TcpIpServer.exe" />
+    <Content Include="TcpIpServer\obj\Debug\TcpIpServer.pdb" />
+    <Content Include="TcpIpServer\Server.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="DebuggingClient\Objects\Client\Client.cs" />
+    <Compile Include="DebuggingClient\Objects\Session\Session.cs" />
+    <Compile Include="DebuggingClient\Objects\Session\SessionWorker.cs" />
+    <Compile Include="DebuggingClient\obj\Debug\TemporaryGeneratedFile_036C0B5B-1481-4323-8D20-8F5ADCB23D92.cs" />
+    <Compile Include="DebuggingClient\obj\Debug\TemporaryGeneratedFile_5937a670-0e60-4077-877b-f7221da3dda1.cs" />
+    <Compile Include="DebuggingClient\obj\Debug\TemporaryGeneratedFile_E7A71F73-0F8D-4B9B-B56E-8E70B10BC5D3.cs" />
+    <Compile Include="DebuggingClient\Program.cs" />
+    <Compile Include="DebuggingClient\Properties\AssemblyInfo.cs" />
+    <Compile Include="TcpIpServer\Objects\Client\Client.cs" />
+    <Compile Include="TcpIpServer\Objects\Client\ClientWorker.cs" />
+    <Compile Include="TcpIpServer\Objects\Request\Request.cs" />
+    <Compile Include="TcpIpServer\Objects\Request\RequestBroker.cs" />
+    <Compile Include="TcpIpServer\Objects\Server\Server.cs" />
+    <Compile Include="TcpIpServer\Objects\Server\ServerWorker.cs" />
+    <Compile Include="TcpIpServer\obj\Debug\TemporaryGeneratedFile_036C0B5B-1481-4323-8D20-8F5ADCB23D92.cs" />
+    <Compile Include="TcpIpServer\obj\Debug\TemporaryGeneratedFile_5937a670-0e60-4077-877b-f7221da3dda1.cs" />
+    <Compile Include="TcpIpServer\obj\Debug\TemporaryGeneratedFile_E7A71F73-0F8D-4B9B-B56E-8E70B10BC5D3.cs" />
+    <Compile Include="TcpIpServer\Program.cs" />
+    <Compile Include="TcpIpServer\Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include=".git\objects\info\" />
+    <Folder Include=".git\refs\tags\" />
+    <Folder Include="DebuggingClient\bin\Release\" />
+    <Folder Include="DebuggingClient\obj\Debug\TempPE\" />
+    <Folder Include="TcpIpServer\bin\Release\" />
+    <Folder Include="TcpIpServer\obj\Debug\TempPE\" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSHARP.Targets" />
+  <ProjectExtensions>
+    <VisualStudio AllowExistingFolder="true" />
+  </ProjectExtensions>
+</Project>
