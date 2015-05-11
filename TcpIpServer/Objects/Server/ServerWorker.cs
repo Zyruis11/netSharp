@@ -3,7 +3,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 
-namespace TcpIpServer.Classes
+namespace Server.Objects.Server
 {
     internal class ServerWorker : IDisposable
     {
@@ -11,9 +11,15 @@ namespace TcpIpServer.Classes
         private readonly int _listenPort;
         private readonly Server _server;
         private TcpListener _tcpListener;
-        private bool acceptExternalClients;
+        private bool _acceptExternalClients;
         public bool IsDisposed;
-        private Thread ServerListenerThread;
+        private Thread _serverListenerThread;
+
+        public void Dispose()
+        {
+            StopListener();
+            IsDisposed = true;
+        }
 
         public ServerWorker(Server server, IPAddress listenAddress, int listenPort)
         {
@@ -24,24 +30,24 @@ namespace TcpIpServer.Classes
 
         public void StartListener()
         {
-            acceptExternalClients = true;
-            ServerListenerThread = new Thread(NewClientAcceptLoop);
-            ServerListenerThread.Start();
+            _acceptExternalClients = true;
+            _serverListenerThread = new Thread(NewClientAcceptLoop);
+            _serverListenerThread.Start();
             IsDisposed = false;
         }
 
         public void StopListener()
         {
-            acceptExternalClients = false;
+            _acceptExternalClients = false;
             InternalTcpConnection();
-            IsDisposed = true;         
+            IsDisposed = true;
         }
 
         // Since the server is blocking in AcceptTcpClient we will connect to ourselves internally to allow the Client Accept Loop to be escaped.
         public void InternalTcpConnection()
         {
             var internalEndpoint = new IPEndPoint(IPAddress.Parse("127.0.0.1"), 3000);
-            TcpClient _internalTcpClient = new TcpClient();
+            var _internalTcpClient = new TcpClient();
             _internalTcpClient.Connect(internalEndpoint);
         }
 
@@ -52,12 +58,13 @@ namespace TcpIpServer.Classes
                 _tcpListener = new TcpListener(_listenAddress, _listenPort);
                 _tcpListener.Start();
                 Console.Write("Entering Client Accept Loop\n");
+                Console.Write("Enter a command :");
                 while (!IsDisposed)
                 {
                     var tcpClient = _tcpListener.AcceptTcpClient();
-                    if (acceptExternalClients)
+                    if (_acceptExternalClients)
                     {
-                        var client = new Client(_server, tcpClient);
+                        var client = new Client.Client(_server, tcpClient);
 
                         var addSuccess = _server.AddClient(client);
 
@@ -87,12 +94,6 @@ namespace TcpIpServer.Classes
             {
                 _tcpListener.Stop();
             }
-        }
-
-        public void Dispose()
-        {
-            StopListener();
-            IsDisposed = true;
         }
     }
 }

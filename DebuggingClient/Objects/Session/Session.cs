@@ -2,15 +2,21 @@
 using System.Net;
 using System.Net.Sockets;
 
-namespace DebuggingClient.Classes
+namespace Client.Objects.Session
 {
-    internal class Session
+    internal class Session : IDisposable
     {
         private SessionWorker _sessionWorker;
-        public bool IsDisposed;
-        public TcpClient TcpClient;
-        public int LastHeard;
         public int HelloInterval;
+        public bool IsDisposed;
+        public int LastHeard;
+        public TcpClient TcpClient;
+
+        public void Dispose()
+        {
+            Close();
+            IsDisposed = true;
+        }
 
         public Session(string sessionEndpoint)
         {
@@ -36,7 +42,7 @@ namespace DebuggingClient.Classes
             }
         }
 
-        private void Close()
+        public void Close()
         {
             TcpClient.Close();
 
@@ -51,9 +57,6 @@ namespace DebuggingClient.Classes
             _sessionWorker.Sender("CLIENT_HELLO");
         }
 
-        public void Dispose()
-        {
-            IsDisposed = true;
-        }
+
     }
 }

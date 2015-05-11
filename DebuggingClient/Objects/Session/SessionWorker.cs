@@ -3,16 +3,22 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DebuggingClient.Classes
+namespace Client.Objects.Session
 {
-    internal class SessionWorker
+    internal class SessionWorker : IDisposable
     {
         private readonly Session _session;
         private readonly Task _sessionListenerTask;
         private readonly TcpClient _tcpClient;
         private readonly ASCIIEncoding encoder = new ASCIIEncoding();
         private NetworkStream _sessionStream;
-        public bool IsDisposed;
+        private bool _isDisposed;
+
+        public void Dispose()
+        {
+            _sessionStream.Close();
+            _isDisposed = true;
+        }
 
         public SessionWorker(Session session)
         {
@@ -29,7 +35,7 @@ namespace DebuggingClient.Classes
             byte[] message;
             int bytesRead;
 
-            while (!IsDisposed)
+            while (!_isDisposed)
             {
                 message = new byte[4096];
                 bytesRead = 0;
@@ -83,12 +89,6 @@ namespace DebuggingClient.Classes
             {
                 Console.WriteLine("No Connection Available :(");
             }
-        }
-
-        public void Dispose()
-        {
-            _sessionStream.Close();
-            IsDisposed = true;
         }
     }
 }

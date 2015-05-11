@@ -1,20 +1,22 @@
 ﻿using System;
-using System.Threading;
-using TcpIpServer.Classes;
 
-namespace TcpIpServer
+namespace Server
 {
     internal class Program
     {
         private readonly string serverDisplayName = "Enter a command : ";
         private bool _isDisposed;
-        private Server _server;
+        private Objects.Server.Server _server;
+
+        public void Dispose() //to-do: Call dispose method
+        {
+            _isDisposed = true;
+        }
 
         private static void Main(string[] args)
-       {
+        {
             var program = new Program();
-            // Declare an instance of the program class to make it's non-static methods 
-            program._server = new Server();
+            program._server = new Objects.Server.Server();
             program.Initialize();
             program.InputLoop();
         }
@@ -31,10 +33,11 @@ namespace TcpIpServer
         {
             while (!_isDisposed)
             {
-                Console.Write(serverDisplayName);
+                Console.Write("Enter a command :");
                 var readLine = Console.ReadLine(); // Wait for console input.
-                Console.Write(_server.ConsoleCommandProcessor(readLine) + "\n");
+                _server.ConsoleCommandProcessor(readLine);
             }
         }
+
     }
 }

@@ -1,10 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 
-namespace TcpIpServer.Classes
+namespace Server.Objects.Request
 {
     // Request Broker provides a lockable object that all clients will access before submitting requests that 
     // may result in long runtimes. The maximum number of concurrent requests is calculated based on the number
@@ -13,9 +9,8 @@ namespace TcpIpServer.Classes
 
     public class RequestBroker
     {
-        private int _maxClientRequests ;
-
-        private List<string> clientsActiveRequestList; 
+        private readonly int _maxClientRequests;
+        private readonly List<string> clientsActiveRequestList;
 
         public RequestBroker(int maxClientRequests)
         {
@@ -27,8 +22,8 @@ namespace TcpIpServer.Classes
         {
             if (clientsActiveRequestList.Count < _maxClientRequests)
             {
-               clientsActiveRequestList.Add(clientGuid);
-               return true;
+                clientsActiveRequestList.Add(clientGuid);
+                return true;
             }
             return false;
         }

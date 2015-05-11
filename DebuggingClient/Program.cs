@@ -1,15 +1,13 @@
 ﻿using System;
-using System.Threading.Tasks;
-using DebuggingClient.Classes;
 
-namespace DebuggingClient
+namespace Client
 {
     internal class Program : IDisposable
     {
-        private Client _client;
+        private Objects.Client.Client _client;
         private bool _isDisposed;
 
-        public void Dispose()
+        public void Dispose() //to-do: Call dispose method
         {
             _isDisposed = true;
         }
@@ -17,7 +15,7 @@ namespace DebuggingClient
         private static void Main(string[] args)
         {
             var program = new Program();
-            program._client = new Client();
+            program._client = new Objects.Client.Client();
             program.Initialize();
             program.InputLoop();
         }

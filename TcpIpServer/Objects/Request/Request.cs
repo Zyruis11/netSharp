@@ -1,10 +1,10 @@
-﻿namespace TcpIpServer.Classes
+﻿namespace Server.Objects.Request
 {
     public class Request
     {
-        public bool WorkComplete;
         public string RequestVar;
         public string ResponseVar;
+        public bool WorkComplete;
 
         public Request(string requestString)
         {

@@ -3,7 +3,7 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 
-namespace TcpIpServer.Classes
+namespace Server.Objects.Client
 {
     internal class ClientWorker : IDisposable
     {
@@ -14,18 +14,18 @@ namespace TcpIpServer.Classes
         private NetworkStream _clientStream;
         public bool IsDisposed;
 
+        public void Dispose()
+        {
+            _clientStream.Close();
+            IsDisposed = true;
+        }
+
         public ClientWorker(Client client)
         {
             _client = client;
             _tcpClient = _client.TcpClient;
             _clientListenerThread = new Thread(RecieverLoop);
             _clientListenerThread.Start();
-        }
-
-        public void Dispose()
-        {
-            _clientStream.Close();
-            IsDisposed = true;
         }
 
         private void RecieverLoop()
@@ -63,8 +63,6 @@ namespace TcpIpServer.Classes
 
         public void ClientRequestHandler(string clientString)
         {
-            
-
             if (clientString.ToUpper() == "TEST")
             {
                 Responder("ACK");
@@ -83,7 +81,7 @@ namespace TcpIpServer.Classes
                 return;
             }
 
-            var request = new Request(clientString);
+            var request = new Request.Request(clientString);
 
             var requestAdded = _client.Server.AddClientRequest(_client.Guid);
 
@@ -100,7 +98,7 @@ namespace TcpIpServer.Classes
             }
         }
 
-        public void WorkSimulator(Request request)
+        public void WorkSimulator(Request.Request request)
         {
             Thread.Sleep(5000);
             request.ResponseVar = "Work Completed.";
