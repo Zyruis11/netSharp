@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace Server.Objects.Request
+namespace Server.Objects.Server.Request
 {
     // Request Broker provides a lockable object that all clients will access before submitting requests that 
     // may result in long runtimes. The maximum number of concurrent requests is calculated based on the number

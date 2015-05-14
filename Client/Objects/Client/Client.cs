@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using System.Timers;
 
 namespace Client.Objects.Client
@@ -9,8 +8,9 @@ namespace Client.Objects.Client
     {
         private readonly int _maxSessionCount = 10;
         private readonly List<Session.Session> _sessionList = new List<Session.Session>();
-        private bool _isDisposed;
         private Timer _clientTimer;
+        private bool _isDisposed;
+        private string Guid;
 
         public void Dispose()
         {
@@ -19,6 +19,8 @@ namespace Client.Objects.Client
 
         public void Intialize()
         {
+            Console.Write("Started at {0}\n\n", DateTime.Now);
+            Guid = Convert.ToString(System.Guid.NewGuid()).Remove(5);
             _clientTimer = new Timer();
             _clientTimer.Elapsed += ClientTimerTick;
             _clientTimer.Interval = 1000;
@@ -42,8 +44,7 @@ namespace Client.Objects.Client
                     }
                     else if (session.HelloInterval == 0)
                     {
-                        var _session = session;
-                        Task.Run(() => _session.SendHello());
+                        session._sessionWorker.SendKeepaliveHello();
                         session.HelloInterval = 10;
                     }
                 }
@@ -71,22 +72,19 @@ namespace Client.Objects.Client
                 {
                     if (_sessionList.Count < _maxSessionCount)
                     {
-                        Console.Write("Enter server address:port : ");
-                        var sessionEndpoint = Console.ReadLine();
-                        var session = new Session.Session(sessionEndpoint);
+                        //Console.Write("Enter server address:port : ");
+                        //var sessionEndpoint = Console.ReadLine();
+                        var session = new Session.Session("127.0.0.1:3000", Guid);
 
                         AddSession(session);
                     }
                     break;
                 }
-                case "CONNECT STRESS":
+                case "DISCONNECT":
                 {
-                    var i = 0;
-                    while (i < 10)
+                    foreach (Session.Session session in _sessionList)
                     {
-                        var session = new Session.Session("127.0.0.1:3000");
-                        AddSession(session);
-                        i++;
+                        session.Dispose();
                     }
                     break;
                 }

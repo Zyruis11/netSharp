@@ -41,8 +41,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Objects\Client\Client.cs" />
-    <Compile Include="Objects\Session\Session.cs" />
-    <Compile Include="Objects\Session\SessionWorker.cs" />
+    <Compile Include="Objects\Client\Session\Session.cs" />
+    <Compile Include="Objects\Client\Session\SessionWorker.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

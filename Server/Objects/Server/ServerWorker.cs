@@ -10,22 +10,22 @@ namespace Server.Objects.Server
         private readonly IPAddress _listenAddress;
         private readonly int _listenPort;
         private readonly Server _server;
-        private TcpListener _tcpListener;
         private bool _acceptExternalClients;
-        public bool IsDisposed;
         private Thread _serverListenerThread;
-
-        public void Dispose()
-        {
-            StopListener();
-            IsDisposed = true;
-        }
+        private TcpListener _tcpListener;
+        public bool IsDisposed;
 
         public ServerWorker(Server server, IPAddress listenAddress, int listenPort)
         {
             _server = server;
             _listenAddress = listenAddress;
             _listenPort = listenPort;
+        }
+
+        public void Dispose()
+        {
+            StopListener();
+            IsDisposed = true;
         }
 
         public void StartListener()
@@ -57,8 +57,6 @@ namespace Server.Objects.Server
             {
                 _tcpListener = new TcpListener(_listenAddress, _listenPort);
                 _tcpListener.Start();
-                Console.Write("Entering Client Accept Loop\n");
-                Console.Write("Enter a command :");
                 while (!IsDisposed)
                 {
                     var tcpClient = _tcpListener.AcceptTcpClient();

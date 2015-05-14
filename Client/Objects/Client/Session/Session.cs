@@ -2,31 +2,33 @@
 using System.Net;
 using System.Net.Sockets;
 
-namespace Client.Objects.Session
+namespace Client.Objects.Client.Session
 {
     internal class Session : IDisposable
     {
-        private SessionWorker _sessionWorker;
+        public SessionWorker _sessionWorker;
         public int HelloInterval;
         public bool IsDisposed;
         public int LastHeard;
         public TcpClient TcpClient;
+        public string Guid;
 
-        public void Dispose()
-        {
-            Close();
-            IsDisposed = true;
-        }
-
-        public Session(string sessionEndpoint)
+        public Session(string sessionEndpoint, string clientGuid)
         {
             var sessionEndpointParse = sessionEndpoint.Split(':');
             var endpointIpAddress = sessionEndpointParse[0];
             var endpointPort = Convert.ToInt32(sessionEndpointParse[1]);
             var serverEndPoint = new IPEndPoint(IPAddress.Parse(endpointIpAddress), endpointPort);
+            Guid = clientGuid;
             LastHeard = 0;
-            HelloInterval = 5;
+            HelloInterval = 10;
             Connect(serverEndPoint);
+        }
+
+        public void Dispose()
+        {
+            Close();
+            IsDisposed = true;
         }
 
         private void Connect(IPEndPoint serverEndPoint)
@@ -37,8 +39,8 @@ namespace Client.Objects.Session
 
             if (TcpClient.Connected)
             {
-                Console.Write("!");
                 _sessionWorker = new SessionWorker(this);
+                Console.Write("\nConnected to Server");
             }
         }
 
@@ -51,12 +53,5 @@ namespace Client.Objects.Session
                 Console.WriteLine("Connection Closed");
             }
         }
-
-        public void SendHello()
-        {
-            _sessionWorker.Sender("CLIENT_HELLO");
-        }
-
-
     }
 }

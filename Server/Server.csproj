@@ -40,10 +40,10 @@
     <Reference Include="System.Core" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Objects\Client\Client.cs" />
-    <Compile Include="Objects\Client\ClientWorker.cs" />
-    <Compile Include="Objects\Request\Request.cs" />
-    <Compile Include="Objects\Request\RequestBroker.cs" />
+    <Compile Include="Objects\Server\Client\Client.cs" />
+    <Compile Include="Objects\Server\Client\ClientWorker.cs" />
+    <Compile Include="Objects\Server\Request\Request.cs" />
+    <Compile Include="Objects\Server\Request\RequestBroker.cs" />
     <Compile Include="Objects\Server\ServerWorker.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

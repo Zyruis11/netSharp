@@ -2,21 +2,21 @@
 using System.Collections.Generic;
 using System.Net;
 using System.Timers;
-using Server.Objects.Request;
+using Server.Objects.Server.Request;
 
 namespace Server.Objects.Server
 {
     internal class Server : IDisposable
     {
         private readonly List<Client.Client> clientList = new List<Client.Client>();
+        private Timer _clientTimer;
         private bool _isDisposed;
         private int _logicalCoreCount;
         private int _maxClientCount;
-        public int MaxClientRequests;
-        private Timer _clientTimer;
-        public bool IsInitialized;
-        public RequestBroker RequestBrokerObj;
         private ServerWorker _serverWorker;
+        public bool IsInitialized;
+        public int MaxClientRequests;
+        public RequestBroker RequestBrokerObj;
 
         public void Dispose()
         {
@@ -131,15 +131,14 @@ namespace Server.Objects.Server
                 case "BROADCAST":
                 {
                     Console.Write("Type 'exit' to exit the broadcast loop.\n");
-                    var stayInLoop = true;
-                    while (stayInLoop)
+                    while (true)
                     {
                         Console.Write("\nEnter broadcast text : ");
                         var broadcastString = Console.ReadLine();
 
                         if (broadcastString == "exit")
                         {
-                            stayInLoop = false;
+                            break;
                         }
 
                         ClientBroadcast(broadcastString);
@@ -218,8 +217,8 @@ namespace Server.Objects.Server
         private void CheckEnvironment()
         {
             _logicalCoreCount = Environment.ProcessorCount;
-            _maxClientCount = _logicalCoreCount * 5;
-            MaxClientRequests = _logicalCoreCount * 2;
+            _maxClientCount = _logicalCoreCount*5;
+            MaxClientRequests = _logicalCoreCount*2;
         }
     }
 }

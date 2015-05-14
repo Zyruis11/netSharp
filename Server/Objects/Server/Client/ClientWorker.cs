@@ -3,22 +3,16 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 
-namespace Server.Objects.Client
+namespace Server.Objects.Server.Client
 {
     internal class ClientWorker : IDisposable
     {
         private readonly Client _client;
         private readonly Thread _clientListenerThread;
         private readonly TcpClient _tcpClient;
-        private readonly ASCIIEncoding encoder = new ASCIIEncoding();
         private NetworkStream _clientStream;
+        private ASCIIEncoding asciiEncoding;
         public bool IsDisposed;
-
-        public void Dispose()
-        {
-            _clientStream.Close();
-            IsDisposed = true;
-        }
 
         public ClientWorker(Client client)
         {
@@ -26,6 +20,12 @@ namespace Server.Objects.Client
             _tcpClient = _client.TcpClient;
             _clientListenerThread = new Thread(RecieverLoop);
             _clientListenerThread.Start();
+        }
+
+        public void Dispose()
+        {
+            _clientStream.Close();
+            IsDisposed = true;
         }
 
         private void RecieverLoop()
@@ -54,8 +54,8 @@ namespace Server.Objects.Client
                 {
                     break;
                 }
-
-                var clientString = encoder.GetString(message, 0, bytesRead);
+                asciiEncoding = new ASCIIEncoding();
+                var clientString = asciiEncoding.GetString(message, 0, bytesRead);
                 ClientRequestHandler(clientString);
             }
             _clientStream.Close();
@@ -63,26 +63,30 @@ namespace Server.Objects.Client
 
         public void ClientRequestHandler(string clientString)
         {
+            if (clientString == null)
+            {
+                return;
+            }
+
             if (clientString.ToUpper() == "TEST")
             {
                 Responder("ACK");
                 return;
             }
 
-            if (clientString.ToUpper() == "CLIENT_HELLO")
+            if (clientString.StartsWith("KA"))
             {
-                Responder("CLIENT_HELLO_ACK");
+                SessionKeepaliveMechanism(clientString);
                 return;
             }
 
-            if (clientString.ToUpper() == "SERVER_HELLO_ACK")
+            if (clientString.StartsWith("GUID_"))
             {
-                _client.LastHeard = 0;
+                _client.Guid = clientString.Remove(0, 5);
                 return;
             }
 
             var request = new Request.Request(clientString);
-
             var requestAdded = _client.Server.AddClientRequest(_client.Guid);
 
             if (requestAdded)
@@ -98,6 +102,20 @@ namespace Server.Objects.Client
             }
         }
 
+        private void SessionKeepaliveMechanism(string clientString)
+        {
+            if (clientString.ToUpper() == "KA_CLIENT_HELLO")
+            {
+                Responder("KA_CLIENT_HELLO_ACK");
+                return;
+            }
+
+            if (clientString.ToUpper() == "KA_SERVER_HELLO_ACK")
+            {
+                _client.LastHeard = 0;
+            }
+        }
+
         public void WorkSimulator(Request.Request request)
         {
             Thread.Sleep(5000);
@@ -106,7 +124,8 @@ namespace Server.Objects.Client
 
         public void Responder(string responseString)
         {
-            var buffer = encoder.GetBytes(responseString);
+            asciiEncoding = new ASCIIEncoding();
+            var buffer = asciiEncoding.GetBytes(responseString);
             _clientStream.Write(buffer, 0, buffer.Length);
         }
     }

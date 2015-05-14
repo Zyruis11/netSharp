@@ -3,22 +3,16 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Client.Objects.Session
+namespace Client.Objects.Client.Session
 {
     internal class SessionWorker : IDisposable
     {
         private readonly Session _session;
         private readonly Task _sessionListenerTask;
         private readonly TcpClient _tcpClient;
-        private readonly ASCIIEncoding encoder = new ASCIIEncoding();
-        private NetworkStream _sessionStream;
         private bool _isDisposed;
-
-        public void Dispose()
-        {
-            _sessionStream.Close();
-            _isDisposed = true;
-        }
+        private NetworkStream _sessionStream;
+        private ASCIIEncoding asciiEncoding;
 
         public SessionWorker(Session session)
         {
@@ -26,6 +20,12 @@ namespace Client.Objects.Session
             _tcpClient = _session.TcpClient;
             _sessionListenerTask = new Task(RecieverLoop);
             _sessionListenerTask.Start();
+        }
+
+        public void Dispose()
+        {
+            _sessionStream.Close();
+            _isDisposed = true;
         }
 
         private void RecieverLoop()
@@ -54,10 +54,9 @@ namespace Client.Objects.Session
                 {
                     break;
                 }
-
-                var serverString = encoder.GetString(message, 0, bytesRead);
+                asciiEncoding = new ASCIIEncoding();
+                var serverString = asciiEncoding.GetString(message, 0, bytesRead);
                 SessionRequestHandler(serverString);
-                Console.WriteLine(serverString);
             }
             _sessionStream.Close();
             Console.WriteLine("Connection Closed by Server");
@@ -65,24 +64,58 @@ namespace Client.Objects.Session
 
         private void SessionRequestHandler(string sessionString)
         {
-            if (sessionString.ToUpper() == "SERVER_HELLO")
+            if (sessionString == null)
             {
-                Sender("SERVER_HELLO_ACK");
                 return;
             }
 
-            if (sessionString.ToUpper() == "CLIENT_HELLO_ACK")
+            if (sessionString.StartsWith("KA"))
             {
-                Sender("SERVER_HELLO_ACK");
+                SessionKeepaliveMechanism(sessionString);
+                return;
+            }
+
+            if (sessionString.StartsWith("BC"))
+            {
+                return;
+            }
+
+            Console.WriteLine(sessionString);
+        }
+
+        private void SessionKeepaliveMechanism(string sessionString)
+        {
+            if (sessionString.ToUpper() == "KA_SERVER_HELLO")
+            {
+                Sender("KA_SERVER_HELLO_ACK");
+                return;
+            }
+
+            if (sessionString.ToUpper() == "KA_CLIENT_HELLO_ACK")
+            {
+                Sender("KA_SERVER_HELLO_ACK");
+                SendGuid();
                 _session.LastHeard = 0;
             }
+        }
+
+        public void SendKeepaliveHello()
+        {
+            Sender("KA_CLIENT_HELLO");
+        }
+
+        public void SendGuid()
+        {
+            var sendString = "GUID_" + _session.Guid;
+            Sender(sendString);
         }
 
         public void Sender(string sendString)
         {
             if (_tcpClient.Connected)
             {
-                var buffer = encoder.GetBytes(sendString);
+                asciiEncoding = new ASCIIEncoding();
+                var buffer = asciiEncoding.GetBytes(sendString);
                 _sessionStream.Write(buffer, 0, buffer.Length);
             }
             else if (!_tcpClient.Connected)

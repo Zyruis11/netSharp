@@ -38,6 +38,5 @@ namespace Server
                 _server.ConsoleCommandProcessor(readLine);
             }
         }
-
     }
 }
