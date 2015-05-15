@@ -91,7 +91,7 @@ namespace Server.Objects.Server.Client
             if (!IsDisposed)
             {
                 _clientStream.Close(); // Only close the client stream if we are disposing the object. Leave it open if we need to
-                return;               // break out of this reciever for error recovery so the next reciever can pick up the clientstream.
+                                       // break out of this reciever for error recovery so the next reciever can pick up the clientstream.
             }
         }
 
