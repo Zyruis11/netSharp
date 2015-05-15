@@ -21,7 +21,7 @@ namespace Client.Objects.Client.Session
             var serverEndPoint = new IPEndPoint(IPAddress.Parse(endpointIpAddress), endpointPort);
             Guid = clientGuid;
             LastHeard = 0;
-            HelloInterval = 10;
+            HelloInterval = 1; // First Hello interval is short to speed GUID exchange.
             Connect(serverEndPoint);
         }
 

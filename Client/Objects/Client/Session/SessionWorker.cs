@@ -56,44 +56,53 @@ namespace Client.Objects.Client.Session
                 }
                 asciiEncoding = new ASCIIEncoding();
                 var serverString = asciiEncoding.GetString(message, 0, bytesRead);
-                SessionRequestHandler(serverString);
+                RequestHandler(serverString);
             }
             _sessionStream.Close();
             Console.WriteLine("Connection Closed by Server");
         }
 
-        private void SessionRequestHandler(string sessionString)
+        public void RequestHandler(string clientString)
         {
-            if (sessionString == null)
-            {
-                return;
-            }
+            string[] clientStringArray = clientString.Split('_');
 
-            if (sessionString.StartsWith("KA"))
-            {
-                SessionKeepaliveMechanism(sessionString);
-                return;
-            }
+            string commandCharacters = clientStringArray[0];
+            string innerString = clientStringArray[1];
 
-            if (sessionString.StartsWith("BC"))
+            switch (commandCharacters)
             {
-                return;
+                case "CMD":
+                    {
+                        break;
+                    }
+                case "KAL":
+                    {
+                        SessionKeepaliveMechanism(innerString);
+                        break;
+                    }
+                case "AID":
+                    {
+                        //Guid = innerString;
+                        break;
+                    }
+                default:
+                    {
+                        break;
+                    }
             }
-
-            Console.WriteLine(sessionString);
         }
 
         private void SessionKeepaliveMechanism(string sessionString)
         {
-            if (sessionString.ToUpper() == "KA_SERVER_HELLO")
+            if (sessionString.ToUpper() == "SERVERHELLO")
             {
-                Sender("KA_SERVER_HELLO_ACK");
+                Sender("KAL_SERVERHELLOACK");
                 return;
             }
 
-            if (sessionString.ToUpper() == "KA_CLIENT_HELLO_ACK")
+            if (sessionString.ToUpper() == "CLIENTHELLOACK")
             {
-                Sender("KA_SERVER_HELLO_ACK");
+                Sender("KAL_SERVERHELLOACK");
                 SendGuid();
                 _session.LastHeard = 0;
             }
@@ -101,7 +110,7 @@ namespace Client.Objects.Client.Session
 
         public void SendKeepaliveHello()
         {
-            Sender("KA_CLIENT_HELLO");
+            Sender("KAL_CLIENTHELLO");
         }
 
         public void SendGuid()

@@ -73,7 +73,7 @@ namespace Server.Objects.Server
                         }
                         else // If we can add the client, start the worker thread.
                         {
-                            client.StartWorker();
+                            client.StartReciever();
                             Console.Beep();
                         }
                     }
