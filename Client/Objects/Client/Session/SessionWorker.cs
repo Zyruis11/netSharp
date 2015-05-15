@@ -64,31 +64,30 @@ namespace Client.Objects.Client.Session
 
         public void RequestHandler(string clientString)
         {
-            string[] clientStringArray = clientString.Split('_');
-
-            string commandCharacters = clientStringArray[0];
-            string innerString = clientStringArray[1];
+            var clientStringArray = clientString.Split('_');
+            var commandCharacters = clientStringArray[0];
+            var innerString = clientStringArray[1];
 
             switch (commandCharacters)
             {
                 case "CMD":
-                    {
-                        break;
-                    }
+                {
+                    break;
+                }
                 case "KAL":
-                    {
-                        SessionKeepaliveMechanism(innerString);
-                        break;
-                    }
+                {
+                    SessionKeepaliveMechanism(innerString);
+                    break;
+                }
                 case "AID":
-                    {
-                        //Guid = innerString;
-                        break;
-                    }
+                {
+                    //Guid = innerString;
+                    break;
+                }
                 default:
-                    {
-                        break;
-                    }
+                {
+                    break;
+                }
             }
         }
 
@@ -115,7 +114,7 @@ namespace Client.Objects.Client.Session
 
         public void SendGuid()
         {
-            var sendString = "GUID_" + _session.Guid;
+            var sendString = "AID_" + _session.Guid;
             Sender(sendString);
         }
 
@@ -129,7 +128,7 @@ namespace Client.Objects.Client.Session
             }
             else if (!_tcpClient.Connected)
             {
-                Console.WriteLine("No Connection Available :(");
+                throw new Exception("Connection not available.");
             }
         }
     }

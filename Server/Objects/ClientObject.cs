@@ -3,28 +3,25 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 
-namespace Server.Objects.Server.Client
+namespace Server.Objects
 {
-    internal class Client : IDisposable
+    internal class ClientObject : IDisposable
     {
-        private Thread _clientListenerThread;
+        private readonly TcpClient _tcpClient;
+        private ASCIIEncoding _asciiEncoding;
         private NetworkStream _clientStream;
-        private ASCIIEncoding asciiEncoding;
-        public Request.Request clientRequest;
-        public string CurrentStatus;
+        private Thread _recieverThread;
+        private Request ClientRequest;
         public string Guid;
         public bool IsDisposed;
         public int LastHeard;
-        public string RemoteEp;
-        public Server Server;
-        public TcpClient TcpClient;
+        public string RemoteEndpoint;
 
-        public Client(Server server, TcpClient tcpClient)
+        public ClientObject(TcpClient tcpClient)
         {
-            Server = server;
-            TcpClient = tcpClient;
+            _tcpClient = tcpClient;
             LastHeard = 0;
-            RemoteEp = TcpClient.Client.RemoteEndPoint.ToString();
+            RemoteEndpoint = _tcpClient.Client.RemoteEndPoint.ToString();
         }
 
         public void Dispose()
@@ -35,72 +32,74 @@ namespace Server.Objects.Server.Client
 
         public void Close()
         {
-            TcpClient.Close();
+            _clientStream.Close();
 
-            if (!TcpClient.Connected)
+            if (_tcpClient.Connected)
             {
-                Console.WriteLine("Connection Closed");
+                _tcpClient.Close();
             }
         }
 
         public void StartReciever()
         {
-            _clientListenerThread = new Thread(Reciever);
-            _clientListenerThread.Start();
+            _recieverThread = new Thread(Reciever);
+            _recieverThread.Start();
         }
 
         public void SendString(string responseString)
         {
-            asciiEncoding = new ASCIIEncoding();
-            var buffer = asciiEncoding.GetBytes(responseString);
+            _asciiEncoding = new ASCIIEncoding();
+            var buffer = _asciiEncoding.GetBytes(responseString);
             _clientStream.Write(buffer, 0, buffer.Length);
         }
 
         private void Reciever()
         {
-            Thread.Sleep(1000); // Slow start to ensure that if we load a new reciever during error recovery the errant reciever 
-                                // has time to release resources.
-            _clientStream = TcpClient.GetStream();
-
-            byte[] message;
-            int bytesRead;
+            Thread.Sleep(1000);
+            // Slow start to ensure that if we load a new reciever during error recovery the errant reciever 
+            // has time to release resources.
+            _clientStream = _tcpClient.GetStream();
 
             while (!IsDisposed)
             {
-                message = new byte[4096];
-                bytesRead = 0;
+                _clientStream.Flush();
+
+                var message = new byte[4096];
+                var bytesRead = 0;
 
                 try
                 {
                     bytesRead = _clientStream.Read(message, 0, 4096);
+
+                    if (bytesRead == 0)
+                    {
+                        break;
+                    }
+                    _asciiEncoding = new ASCIIEncoding();
+                    var clientString = _asciiEncoding.GetString(message, 0, bytesRead);
+                    RequestHandler(clientString);
                 }
-                catch (Exception exception)
+                catch (Exception)
                 {
                     StartReciever(); // Start a new reciever
                     break;
                 }
-
-                if (bytesRead == 0)
-                {
-                    break;
-                }
-                asciiEncoding = new ASCIIEncoding();
-                var clientString = asciiEncoding.GetString(message, 0, bytesRead);
-                RequestHandler(clientString);
             }
-            if (!IsDisposed)
+
+            if (IsDisposed)
             {
-                _clientStream.Close(); // Only close the client stream if we are disposing the object. Leave it open if we need to
-                                       // break out of this reciever for error recovery so the next reciever can pick up the clientstream.
+                _clientStream.Close();
+                // Only close the client stream if we are disposing the object. Leave it open if we need to
+                // break out of this reciever for error recovery so the next reciever can pick up the clientstream.
             }
         }
 
         public void RequestHandler(string clientString)
         {
-            string[] clientStringArray = clientString.Split('_');
+            var clientStringArray = clientString.Split('_');
 
-            string commandCharacters = clientStringArray[0];
-            string innerString = clientStringArray[1];
+            var commandCharacters = clientStringArray[0];
+            var innerString = clientStringArray[1];
 
             switch (commandCharacters)
             {

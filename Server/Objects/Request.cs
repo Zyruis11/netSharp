@@ -1,4 +1,4 @@
-﻿namespace Server.Objects.Server.Request
+﻿namespace Server.Objects
 {
     public class Request
     {

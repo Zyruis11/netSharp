@@ -40,17 +40,17 @@
     <Reference Include="System.Core" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Objects\Server\Client\Client.cs" />
-    <Compile Include="Objects\Server\Request\Request.cs" />
-    <Compile Include="Objects\Server\Request\RequestBroker.cs" />
-    <Compile Include="Objects\Server\ServerWorker.cs" />
+    <Compile Include="Objects\ClientObject.cs" />
+    <Compile Include="Objects\Request.cs" />
+    <Compile Include="RequestBroker.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Objects\Server\Server.cs" />
+    <Compile Include="Server.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
