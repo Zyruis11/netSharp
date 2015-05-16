@@ -33,7 +33,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup>
-    <StartupObject>CliClient.Program</StartupObject>
+    <StartupObject>Test.Client.Program</StartupObject>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
