@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Net;
 using Library.Networking.TCP;
 
 namespace Test.Client
@@ -50,17 +51,15 @@ namespace Test.Client
                     {
                         if (_client._sessionList.Count < _client._maxSessionCount)
                         {
-                            //Console.Write("Enter server address:port : ");
-                            //var sessionEndpoint = Console.ReadLine();
-                            var session = new ServerSession("127.0.0.1:3000", _client.Guid);
-
-                            _client.AddSession(session);
+                            IPAddress remoteIpAddress = IPAddress.Parse("127.0.0.1");
+                            int remotePort = 3000;
+                            _client.NewSession(remoteIpAddress, remotePort);
                         }
                         break;
                     }
                 case "DISCONNECT":
                     {
-                        foreach (ServerSession session in _client._sessionList)
+                        foreach (Session session in _client._sessionList)
                         {
                             session.Dispose();
                         }

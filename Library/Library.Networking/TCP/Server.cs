@@ -5,6 +5,7 @@ using System.Net.Sockets;
 using System.Threading;
 using System.Timers;
 using Library.Networking.RequestHandling;
+using Library.Networking.TCP.Features;
 using Timer = System.Timers.Timer;
 
 namespace Library.Networking.TCP
@@ -15,6 +16,7 @@ namespace Library.Networking.TCP
         private readonly int _listenPort;
         private readonly Timer _serverTimer;
         private readonly TcpListener _tcpListener;
+        private readonly Guid serverGuid;
         private int _clientFactoryExceptionCount;
         private Thread _clientFactoryThread;
 
@@ -24,7 +26,7 @@ namespace Library.Networking.TCP
             _listenPort = serverBindPort;
 
             _tcpListener = new TcpListener(_listenAddress, _listenPort);
-            ClientSessionList = new List<ClientSession>();
+            SessionList = new List<Session>();
             RequestBroker = new RequestBroker(this);
             _serverTimer = new Timer(1000);
             _serverTimer.Elapsed += ServerTimerTick;
@@ -36,10 +38,12 @@ namespace Library.Networking.TCP
             _listenAddress = IPAddress.Parse(serverBindAddr);
             _listenPort = serverBindPort;
 
+            serverGuid = Guid.NewGuid();
+
             StartClientSessionFactory();
         }
 
-        public List<ClientSession> ClientSessionList { get; set; }
+        public List<Session> SessionList { get; set; }
         public bool IsDisposed { get; set; }
         public RequestBroker RequestBroker { get; set; }
         public int MaxClientCount { get; set; }
@@ -54,7 +58,6 @@ namespace Library.Networking.TCP
         private void ServerTimerTick(object source, ElapsedEventArgs eea)
         {
             ClientGarbageCollector();
-            //ClientRequestCollector();
         }
 
         /// <summary>
@@ -63,29 +66,10 @@ namespace Library.Networking.TCP
         /// </summary>
         private void ClientGarbageCollector()
         {
-            var clientsToDispose = new List<ClientSession>();
-
-            lock (ClientSessionList)
-            {
-                foreach (var client in ClientSessionList)
-                {
-                    client.LastHeard += 1;
-
-                    if (client.LastHeard >= 30)
-                    {
-                        clientsToDispose.Add(client);
-                    }
-                }
-
-                foreach (var client in clientsToDispose)
-                {
-                    client.Dispose();
-                    ClientSessionList.Remove(client);
-                }
-            }
+            Heartbeat.Pulse(SessionList);
         }
 
-        private void ClientSessionFactory()
+        private void SessionFactory()
         {
             Thread.Sleep(1000);
 
@@ -96,7 +80,7 @@ namespace Library.Networking.TCP
                 try
                 {
                     var tcpClient = _tcpListener.AcceptTcpClient();
-                    var clientObject = new ClientSession(tcpClient);
+                    var clientObject = new Session(0, null, serverGuid, tcpClient);
                     var addSuccess = AddClient(clientObject);
 
                     if (!addSuccess)
@@ -123,9 +107,9 @@ namespace Library.Networking.TCP
 
         public void ClientBroadcast(string broadcastString)
         {
-            lock (ClientSessionList)
+            lock (SessionList)
             {
-                foreach (var client in ClientSessionList)
+                foreach (var client in SessionList)
                 {
                     client.SendString(broadcastString);
                 }
@@ -134,26 +118,26 @@ namespace Library.Networking.TCP
 
         public void StartClientSessionFactory()
         {
-            _clientFactoryThread = new Thread(ClientSessionFactory);
+            _clientFactoryThread = new Thread(SessionFactory);
             _clientFactoryThread.Start();
         }
 
-        public bool AddClient(ClientSession client)
+        public bool AddClient(Session client)
         {
-            lock (ClientSessionList)
+            lock (SessionList)
             {
-                if (ClientSessionList.Count >= MaxClientCount) return false;
-                ClientSessionList.Add(client);
+                if (SessionList.Count >= MaxClientCount) return false;
+                SessionList.Add(client);
                 return true;
             }
         }
 
-        public bool RemoveClient(ClientSession client)
+        public bool RemoveClient(Session client)
         {
-            lock (ClientSessionList)
+            lock (SessionList)
             {
-                if (!ClientSessionList.Contains(client)) return false;
-                ClientSessionList.Remove(client);
+                if (!SessionList.Contains(client)) return false;
+                SessionList.Remove(client);
                 return true;
             }
         }

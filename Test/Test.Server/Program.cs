@@ -76,20 +76,20 @@ namespace Test.Server
                 case "CLIENTS":
                 {
                     //to-do: Show Information on Main
-                    Console.Write("\n{0}/{1} Clients connected\n", _server.ClientSessionList.Count, _server.MaxClientCount);
+                    Console.Write("\n{0}/{1} Clients connected\n", _server.SessionList.Count, _server.MaxClientCount);
 
-                    Console.Write("\nClient Name | Last Heard | Client Address/Port\n\n");
+                    Console.Write("\nClient Name | Last Heard | ToClient Address/Port\n\n");
 
-                    lock (_server.ClientSessionList)
+                    lock (_server.SessionList)
                     {
-                        foreach (var client in _server.ClientSessionList)
+                        foreach (var session in _server.SessionList)
                         {
-                            Console.Write("{0}         {1}            {2}\n", client.ClientGuid, client.LastHeard,
-                                client.RemoteClientEndpointIpAddressPort);
+                            Console.Write("{0}         {1}            {2}\n", session.GetFriendlyEndpointGuid() , session.LastTwoWay,
+                                session.RemoteEndpointIpAddressPort);
                         }
                     }
 
-                    Console.Write("\n{0}/{1} Clients connected\n", _server.ClientSessionList.Count, _server.MaxClientCount);
+                    Console.Write("\n{0}/{1} Clients connected\n", _server.SessionList.Count, _server.MaxClientCount);
 
                     break;
                 }

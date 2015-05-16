@@ -1,16 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Net;
 using System.Timers;
+using Library.Networking.TCP.Features;
 
 namespace Library.Networking.TCP
 {
     public class Client : IDisposable
     {
         public readonly int _maxSessionCount = 10;
-        public readonly List<ServerSession> _sessionList = new List<ServerSession>();
+        public readonly List<Session> _sessionList = new List<Session>();
         private Timer _clientTimer;
         private bool _isDisposed;
-        public string Guid;
+        public Guid ClientGuid;
 
         public void Dispose()
         {
@@ -20,45 +22,27 @@ namespace Library.Networking.TCP
         public void Intialize()
         {
             Console.Write("Started at {0}\n\n", DateTime.Now);
-            Guid = Convert.ToString(System.Guid.NewGuid()).Remove(5);
-            _clientTimer = new Timer();
+            
+            ClientGuid = Guid.NewGuid();
+
+            _clientTimer = new Timer(1000);
             _clientTimer.Elapsed += ClientTimerTick;
-            _clientTimer.Interval = 1000;
             _clientTimer.Enabled = true;
         }
 
         public void ClientTimerTick(object source, ElapsedEventArgs eea)
         {
-            var sessionsToDispose = new List<ServerSession>();
-
-            lock (_sessionList)
-            {
-                foreach (var session in _sessionList)
-                {
-                    session.LastHeard += 1;
-                    session.HelloInterval--;
-
-                    if (session.LastHeard >= 30)
-                    {
-                        sessionsToDispose.Add(session);
-                    }
-                    else if (session.HelloInterval == 0)
-                    {
-                        session.SendKeepaliveHello();
-                        session.HelloInterval = 10;
-                    }
-                }
-
-                foreach (var session in sessionsToDispose)
-                {
-                    session.Dispose();
-                    _sessionList.Remove(session);
-                    Console.Write("ServerSession disposed.");
-                }
-            }
+            Heartbeat.Pulse(_sessionList);
         }
 
-        public bool AddSession(ServerSession serverSession)
+        public void NewSession(IPAddress remoteIpAddress, int remotePort)
+        {
+            var remoteEndpoint = new IPEndPoint(remoteIpAddress, remotePort);
+            Session session = new Session(1, remoteEndpoint, ClientGuid);
+            AddSession(session);
+        }
+
+        public bool AddSession(Session serverSession)
         {
             if (serverSession == null) throw new ArgumentNullException("serverSession");
             lock (_sessionList)
@@ -73,7 +57,7 @@ namespace Library.Networking.TCP
             return false;
         }
 
-        public void RemoveSession(ServerSession serverSession)
+        public void RemoveSession(Session serverSession)
         {
             lock (_sessionList)
             {

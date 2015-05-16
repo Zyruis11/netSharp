@@ -43,13 +43,12 @@
     <Compile Include="RequestHandling\Request.cs" />
     <Compile Include="RequestHandling\RequestBroker.cs" />
     <Compile Include="TCP\Client.cs" />
-    <Compile Include="TCP\ClientSession.cs" />
+    <Compile Include="TCP\Features\Heartbeat.cs" />
+    <Compile Include="TCP\Session.cs" />
     <Compile Include="TCP\Server.cs" />
-    <Compile Include="TCP\ServerSession.cs" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="EventArguments\" />
-    <Folder Include="TCP\KeepAlive\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
