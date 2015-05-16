@@ -1,4 +1,4 @@
-﻿namespace Server.Objects
+﻿namespace Library.Networking.RequestHandling
 {
     public class Request
     {

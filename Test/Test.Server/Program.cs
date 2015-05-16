@@ -1,10 +1,10 @@
 ﻿using System;
 
-namespace Server
+namespace Test.Server
 {
     internal class Program
     {
-        private Server _server;
+        private Library.Networking.TCP.Server _server;
         private bool IsDisposed;
 
         public void Dispose() //to-do: Call dispose method
@@ -24,7 +24,7 @@ namespace Server
             Console.Write("Starting up...\n\n");
             var serverBindAddr = "127.0.0.1";
             var serverBindPort = 3000;
-            _server = new Server(serverBindAddr, serverBindPort);
+            _server = new Library.Networking.TCP.Server(serverBindAddr, serverBindPort, 10, 100);
             Console.Write("Started at {0}\n\n", DateTime.Now);
         }
 
@@ -53,7 +53,7 @@ namespace Server
 
                     if (IsDisposed)
                     {
-                        _server.StartClientFactory();
+                        _server.StartClientSessionFactory();
                         Console.Write("Listener starting. \n");
                     }
 
@@ -68,7 +68,7 @@ namespace Server
 
                     if (!IsDisposed)
                     {
-                        _server.StopClientFactory();
+                        _server.Dispose();
                         Console.Write("Listener stopping. \n");
                     }
                     break;
@@ -76,20 +76,20 @@ namespace Server
                 case "CLIENTS":
                 {
                     //to-do: Show Information on Main
-                    Console.Write("\n{0}/{1} Clients connected\n", _server.ClientObjectList.Count, _server._maxClientCount);
+                    Console.Write("\n{0}/{1} Clients connected\n", _server.ClientSessionList.Count, _server.MaxClientCount);
 
                     Console.Write("\nClient Name | Last Heard | Client Address/Port\n\n");
 
-                    lock (_server.ClientObjectList)
+                    lock (_server.ClientSessionList)
                     {
-                        foreach (var client in _server.ClientObjectList)
+                        foreach (var client in _server.ClientSessionList)
                         {
-                            Console.Write("{0}         {1}            {2}\n", client.Guid, client.LastHeard,
-                                client.RemoteEndpoint);
+                            Console.Write("{0}         {1}            {2}\n", client.ClientGuid, client.LastHeard,
+                                client.RemoteClientEndpointIpAddressPort);
                         }
                     }
 
-                    Console.Write("\n{0}/{1} Clients connected\n", _server.ClientObjectList.Count, _server._maxClientCount);
+                    Console.Write("\n{0}/{1} Clients connected\n", _server.ClientSessionList.Count, _server.MaxClientCount);
 
                     break;
                 }

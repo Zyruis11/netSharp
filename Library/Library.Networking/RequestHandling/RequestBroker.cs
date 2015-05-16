@@ -1,26 +1,23 @@
 ﻿using System.Collections.Generic;
+using Library.Networking.TCP;
 
-namespace Server
+namespace Library.Networking.RequestHandling
 {
-    // Request Broker provides a lockable object that all clients will access before submitting requests that 
-    // may result in long runtimes. The maximum number of concurrent requests is calculated based on the number
-    // of logical CPU's in the host system and passed to this object when it is instantiated via the default
-    // constructor.
-
     public class RequestBroker
     {
         private readonly int _maxClientRequests;
         private readonly List<string> clientsActiveRequestList;
+        private Server _server;
 
-        public RequestBroker(int maxClientRequests)
+        public RequestBroker(Server server)
         {
-            _maxClientRequests = maxClientRequests;
+            _server = server;
             clientsActiveRequestList = new List<string>();
         }
 
         public bool AddRequest(string clientGuid)
         {
-            if (clientsActiveRequestList.Count < _maxClientRequests)
+            if (clientsActiveRequestList.Count < _server.MaxClientRequests)
             {
                 clientsActiveRequestList.Add(clientGuid);
                 return true;
