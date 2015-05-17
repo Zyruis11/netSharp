@@ -2,18 +2,16 @@
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
-using Library.Networking.TCP.Features;
 
 namespace Library.Networking.TCP
 {
     public class Session : IDisposable
     {
+        private readonly TcpClient _tcpClient;
         private ASCIIEncoding _asciiEncoding;
         private NetworkStream _networkStream;
         private Task _streamReaderThread;
-        private TcpClient _tcpClient;
 
         /// <summary>
         /// </summary>
@@ -52,8 +50,7 @@ namespace Library.Networking.TCP
             }
 
             LocalEndpointGuid = localEndpointGuid;
-            //IsDisposed = false;           
-            GetStream();
+            Connect();
         }
 
         public bool IsDisposed { get; set; }
@@ -75,7 +72,7 @@ namespace Library.Networking.TCP
             return Convert.ToString(RemoteEndpointGuid).Remove(5);
         }
 
-        private void GetStream()
+        private void Connect()
         {
             if (!_tcpClient.Connected)
             {
@@ -107,10 +104,6 @@ namespace Library.Networking.TCP
         /// </summary>
         private void StreamReader()
         {
-            // Slow start in case we need to wait for another streamReader to release the stream.
-            Thread.Sleep(500);
-
-
             while (!IsDisposed)
             {
                 _networkStream.Flush();
@@ -120,7 +113,8 @@ namespace Library.Networking.TCP
 
                 try
                 {
-                    bytesRead = _networkStream.Read(message, 0, 8192); //to-do: Allow variable buffer size
+                    bytesRead = _networkStream.Read(message, 0, 8192);
+                        //to-do: Allow variable buffer size                  
 
                     if (bytesRead == 0)
                     {
@@ -166,13 +160,24 @@ namespace Library.Networking.TCP
                     else
                     {
                         LastTwoWay = 0;
-                    }            
+                    }
                     break;
                 }
-
-                case "AID":
+                case "GUID":
                 {
-                    if (innerString != null) RemoteEndpointGuid = Guid.Parse(innerString);
+                    if (innerString == null)
+                    {
+                        break;
+                    }
+                    if (innerString == "GET")
+                    {
+                        var guidString = string.Format("GUID_{0}", LocalEndpointGuid.ToString());
+                        SendString(guidString);
+                    }
+                    else
+                    {
+                        RemoteEndpointGuid = Guid.Parse(innerString);
+                    }
                     break;
                 }
                 default:
@@ -181,12 +186,6 @@ namespace Library.Networking.TCP
                     break;
                 }
             }
-        }
-
-        public void SendGuid()
-        {
-            var sendString = "AID_" + LocalEndpointGuid;
-            SendString(sendString);
         }
 
         public void SendHeartbeat(bool isAck = false)

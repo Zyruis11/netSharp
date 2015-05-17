@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Net;
-using Library.Networking.TCP;
+using Library.Networking.TCP.Events;
 
 namespace Test.Client
 {
@@ -17,14 +17,23 @@ namespace Test.Client
         private static void Main(string[] args)
         {
             var program = new Program();
-            program._client = new Library.Networking.TCP.Client();
             program.Initialize();
             program.InputLoop();
         }
 
         private void Initialize()
         {
+            Console.Write("Starting up...\n\n");
+            _client = new Library.Networking.TCP.Client();
             _client.Intialize();
+            _client.SessionCreated += HandleNewSessionEvent;
+            Console.Write("Started client at {0}\n\n", DateTime.Now);
+
+        }
+
+        private void HandleNewSessionEvent(object sender, TcpEventArgs tcpEventArgs)
+        {
+            Console.WriteLine(tcpEventArgs.Message);
         }
 
         private void InputLoop()
@@ -44,27 +53,27 @@ namespace Test.Client
             switch (commandToUpper)
             {
                 case "SESSIONS":
-                    {
-                        break;
-                    }
+                {
+                    break;
+                }
                 case "CONNECT":
+                {
+                    if (_client._sessionList.Count < _client._maxSessionCount)
                     {
-                        if (_client._sessionList.Count < _client._maxSessionCount)
-                        {
-                            IPAddress remoteIpAddress = IPAddress.Parse("127.0.0.1");
-                            int remotePort = 3000;
-                            _client.NewSession(remoteIpAddress, remotePort);
-                        }
-                        break;
+                        var remoteIpAddress = IPAddress.Parse("127.0.0.1");
+                        var remotePort = 3000;
+                        _client.NewSession(remoteIpAddress, remotePort);
                     }
+                    break;
+                }
                 case "DISCONNECT":
+                {
+                    foreach (var session in _client._sessionList)
                     {
-                        foreach (Session session in _client._sessionList)
-                        {
-                            session.Dispose();
-                        }
-                        break;
+                        session.Dispose();
                     }
+                    break;
+                }
             }
         }
     }

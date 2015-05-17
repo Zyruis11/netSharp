@@ -25,7 +25,7 @@ namespace Test.Server
             var serverBindAddr = "127.0.0.1";
             var serverBindPort = 3000;
             _server = new Library.Networking.TCP.Server(serverBindAddr, serverBindPort, 10, 100);
-            Console.Write("Started at {0}\n\n", DateTime.Now);
+            Console.Write("Started server at {0}\n\n", DateTime.Now);
         }
 
         private void InputLoop()
@@ -84,7 +84,8 @@ namespace Test.Server
                     {
                         foreach (var session in _server.SessionList)
                         {
-                            Console.Write("{0}         {1}            {2}\n", session.GetFriendlyEndpointGuid() , session.LastTwoWay,
+                            Console.Write("{0}         {1}            {2}\n", session.GetFriendlyEndpointGuid(),
+                                session.LastTwoWay,
                                 session.RemoteEndpointIpAddressPort);
                         }
                     }

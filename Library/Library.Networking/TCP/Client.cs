@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Net;
 using System.Timers;
+using Library.Networking.TCP.Events;
 using Library.Networking.TCP.Features;
 
 namespace Library.Networking.TCP
@@ -19,12 +20,30 @@ namespace Library.Networking.TCP
             _isDisposed = true;
         }
 
+        // Event Handlers
+        public event EventHandler<TcpEventArgs> SessionRemoved;
+        public event EventHandler<TcpEventArgs> ClientIntialized;
+        public event EventHandler<TcpEventArgs> ServerDataRecieved;
+        public event EventHandler<TcpEventArgs> SessionCreated;
+        // Event Handler-Trigger Binding
+        protected virtual void EventTriggerToEventHandlerBindingController(TcpEventArgs tcpEventArgs,
+            EventHandler<TcpEventArgs> eventHandler)
+        {
+            if (eventHandler != null)
+            {
+                eventHandler(this, tcpEventArgs);
+            }
+        }
+
+        // Event Triggers
+        public void SessionCreatedTrigger()
+        {
+            EventTriggerToEventHandlerBindingController(new TcpEventArgs("New Session Created"), SessionCreated);
+        }
+
         public void Intialize()
         {
-            Console.Write("Started at {0}\n\n", DateTime.Now);
-            
             ClientGuid = Guid.NewGuid();
-
             _clientTimer = new Timer(1000);
             _clientTimer.Elapsed += ClientTimerTick;
             _clientTimer.Enabled = true;
@@ -33,13 +52,24 @@ namespace Library.Networking.TCP
         public void ClientTimerTick(object source, ElapsedEventArgs eea)
         {
             Heartbeat.Pulse(_sessionList);
+
+            foreach (Session session in _sessionList)
+            {
+                if (session.RemoteEndpointGuid == Guid.Empty)
+                {
+                    session.SendString("GUID_GET");
+                }
+            }
         }
 
         public void NewSession(IPAddress remoteIpAddress, int remotePort)
         {
             var remoteEndpoint = new IPEndPoint(remoteIpAddress, remotePort);
-            Session session = new Session(1, remoteEndpoint, ClientGuid);
-            AddSession(session);
+            var session = new Session(1, remoteEndpoint, ClientGuid);
+            if (AddSession(session))
+            {
+                SessionCreatedTrigger();
+            }
         }
 
         public bool AddSession(Session serverSession)

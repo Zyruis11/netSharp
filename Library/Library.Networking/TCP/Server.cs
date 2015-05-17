@@ -58,6 +58,14 @@ namespace Library.Networking.TCP
         private void ServerTimerTick(object source, ElapsedEventArgs eea)
         {
             ClientGarbageCollector();
+
+            foreach (Session session in SessionList)
+            {
+                if (session.RemoteEndpointGuid == Guid.Empty)
+                {
+                    session.SendString("GUID_GET");
+                }
+            }
         }
 
         /// <summary>

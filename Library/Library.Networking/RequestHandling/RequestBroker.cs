@@ -6,8 +6,8 @@ namespace Library.Networking.RequestHandling
     public class RequestBroker
     {
         private readonly int _maxClientRequests;
+        private readonly Server _server;
         private readonly List<string> clientsActiveRequestList;
-        private Server _server;
 
         public RequestBroker(Server server)
         {

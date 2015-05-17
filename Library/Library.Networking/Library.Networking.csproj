@@ -43,6 +43,7 @@
     <Compile Include="RequestHandling\Request.cs" />
     <Compile Include="RequestHandling\RequestBroker.cs" />
     <Compile Include="TCP\Client.cs" />
+    <Compile Include="TCP\Events\EventArgs.cs" />
     <Compile Include="TCP\Features\Heartbeat.cs" />
     <Compile Include="TCP\Session.cs" />
     <Compile Include="TCP\Server.cs" />

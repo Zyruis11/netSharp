@@ -1,20 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 
 namespace Library.Networking.TCP.Features
 {
-   static class Heartbeat
+    internal static class Heartbeat
     {
-        public static void Pulse(List<Session> _sessionList )
+        public static void Pulse(List<Session> sessionList)
         {
             var clientsToDispose = new List<Session>();
 
-            lock (_sessionList)
+            lock (sessionList)
             {
-                foreach (var session in _sessionList)
+                foreach (var session in sessionList)
                 {
                     session.LastTwoWay += 1;
                     if (session.LastTwoWay >= 30)
@@ -34,7 +30,7 @@ namespace Library.Networking.TCP.Features
                 foreach (var client in clientsToDispose)
                 {
                     client.Dispose();
-                    _sessionList.Remove(client);
+                    sessionList.Remove(client);
                 }
             }
         }
