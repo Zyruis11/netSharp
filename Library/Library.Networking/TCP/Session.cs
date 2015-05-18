@@ -4,7 +4,7 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Library.Networking.TCP
+namespace netSharp.TCP
 {
     public class Session : IDisposable
     {

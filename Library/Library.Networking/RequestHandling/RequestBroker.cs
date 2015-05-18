@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
-using Library.Networking.TCP;
+using netSharp.TCP;
 
-namespace Library.Networking.RequestHandling
+namespace netSharp.RequestHandling
 {
     public class RequestBroker
     {

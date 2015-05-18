@@ -1,4 +1,4 @@
-﻿namespace Library.Networking.RequestHandling
+﻿namespace netSharp.RequestHandling
 {
     public class Request
     {

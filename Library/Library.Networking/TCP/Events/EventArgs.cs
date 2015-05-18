@@ -1,4 +1,4 @@
-﻿namespace Library.Networking.TCP.Events
+﻿namespace netSharp.TCP.Events
 {
     public class TcpEventArgs
     {

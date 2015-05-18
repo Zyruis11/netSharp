@@ -2,10 +2,10 @@
 using System.Collections.Generic;
 using System.Net;
 using System.Timers;
-using Library.Networking.TCP.Events;
-using Library.Networking.TCP.Features;
+using netSharp.TCP.Events;
+using netSharp.TCP.Features;
 
-namespace Library.Networking.TCP
+namespace netSharp.TCP
 {
     public class Client : IDisposable
     {

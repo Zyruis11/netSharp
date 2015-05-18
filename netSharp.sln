@@ -7,7 +7,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Test", "Test", "{FE344644-4
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Library", "Library", "{304E77B8-2D5B-4B2E-B146-D346E22E3C28}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Library.Networking", "Library\Library.Networking\Library.Networking.csproj", "{5776D090-CAE8-492F-B15A-5530EF7A45CF}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "netSharp", "Library\Library.Networking\netSharp.csproj", "{5776D090-CAE8-492F-B15A-5530EF7A45CF}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Test.Client", "Test\Test.Client\Test.Client.csproj", "{1A67E93B-7942-4EA8-9F34-72F0EC6C4729}"
 EndProject

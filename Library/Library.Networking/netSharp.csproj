@@ -7,8 +7,8 @@
     <ProjectGuid>{5776D090-CAE8-492F-B15A-5530EF7A45CF}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Library.Networking</RootNamespace>
-    <AssemblyName>Library.Networking</AssemblyName>
+    <RootNamespace>netSharp</RootNamespace>
+    <AssemblyName>netSharp</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>

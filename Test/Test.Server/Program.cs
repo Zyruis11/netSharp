@@ -4,7 +4,7 @@ namespace Test.Server
 {
     internal class Program
     {
-        private Library.Networking.TCP.Server _server;
+        private netSharp.TCP.Server _server;
         private bool IsDisposed;
 
         public void Dispose() //to-do: Call dispose method
@@ -24,7 +24,7 @@ namespace Test.Server
             Console.Write("Starting up...\n\n");
             var serverBindAddr = "127.0.0.1";
             var serverBindPort = 3000;
-            _server = new Library.Networking.TCP.Server(serverBindAddr, serverBindPort, 10, 100);
+            _server = new netSharp.TCP.Server(serverBindAddr, serverBindPort, 10, 100);
             Console.Write("Started server at {0}\n\n", DateTime.Now);
         }
 
