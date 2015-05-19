@@ -9,39 +9,13 @@ namespace netSharp.TCP
 {
     public class Client : IDisposable
     {
-        public readonly int _maxSessionCount = 10;
-        public readonly List<Session> _sessionList = new List<Session>();
-        private Timer _clientTimer;
+        private readonly Timer _clientTimer;
+        public readonly int MaxSessionCount = 10;
+        public readonly List<Session> SessionList = new List<Session>();
         private bool _isDisposed;
         public Guid ClientGuid;
 
-        public void Dispose()
-        {
-            _isDisposed = true;
-        }
-
-        // Event Handlers
-        public event EventHandler<TcpEventArgs> SessionRemoved;
-        public event EventHandler<TcpEventArgs> ClientIntialized;
-        public event EventHandler<TcpEventArgs> ServerDataRecieved;
-        public event EventHandler<TcpEventArgs> SessionCreated;
-        // Event Handler-Trigger Binding
-        protected virtual void EventTriggerToEventHandlerBindingController(TcpEventArgs tcpEventArgs,
-            EventHandler<TcpEventArgs> eventHandler)
-        {
-            if (eventHandler != null)
-            {
-                eventHandler(this, tcpEventArgs);
-            }
-        }
-
-        // Event Triggers
-        public void SessionCreatedTrigger()
-        {
-            EventTriggerToEventHandlerBindingController(new TcpEventArgs("New Session Created"), SessionCreated);
-        }
-
-        public void Intialize()
+        public Client()
         {
             ClientGuid = Guid.NewGuid();
             _clientTimer = new Timer(1000);
@@ -49,11 +23,56 @@ namespace netSharp.TCP
             _clientTimer.Enabled = true;
         }
 
+        public void Dispose()
+        {
+            _isDisposed = true;
+        }
+
+        public event EventHandler<EventDataArgs> SessionRemoved;
+        public event EventHandler<EventDataArgs> SessionCreated;
+        public event EventHandler<EventDataArgs> SessionPaused;
+        public event EventHandler<EventDataArgs> ServerDataReturn;
+        public event EventHandler<EventDataArgs> ServerMessage;
+        // Event Handler-Trigger Binding
+        protected virtual void EventInvocationWrapper(EventDataArgs eventDataArgs,
+            EventHandler<EventDataArgs> eventHandler)
+        {
+            if (eventHandler != null)
+            {
+                eventHandler(this, eventDataArgs);
+            }
+        }
+
+        public void SessionCreatedTrigger()
+        {
+            EventInvocationWrapper(new EventDataArgs(), SessionCreated);
+        }
+
+        public void SessionPausedTrigger()
+        {
+            EventInvocationWrapper(new EventDataArgs(), SessionPaused);
+        }
+
+        public void SessionRemovedTrigger()
+        {
+            EventInvocationWrapper(new EventDataArgs(), SessionRemoved);
+        }
+
+        public void ServerDataReturnTrigger()
+        {
+            EventInvocationWrapper(new EventDataArgs(), ServerDataReturn);
+        }
+
+        public void ServerMessageTrigger()
+        {
+            EventInvocationWrapper(new EventDataArgs(), ServerMessage);
+        }
+
         public void ClientTimerTick(object source, ElapsedEventArgs eea)
         {
-            Heartbeat.Pulse(_sessionList);
+            Heartbeat.Pulse(SessionList);
 
-            foreach (Session session in _sessionList)
+            foreach (var session in SessionList)
             {
                 if (session.RemoteEndpointGuid == Guid.Empty)
                 {
@@ -66,36 +85,37 @@ namespace netSharp.TCP
         {
             var remoteEndpoint = new IPEndPoint(remoteIpAddress, remotePort);
             var session = new Session(1, remoteEndpoint, ClientGuid);
-            if (AddSession(session))
-            {
-                SessionCreatedTrigger();
-            }
+            AddSession(session);
         }
 
-        public bool AddSession(Session serverSession)
+        public void AddSession(Session serverSession)
         {
             if (serverSession == null) throw new ArgumentNullException("serverSession");
-            lock (_sessionList)
+            lock (SessionList)
             {
-                if (_sessionList.Count < _maxSessionCount)
+                if (SessionList.Count < MaxSessionCount)
                 {
-                    _sessionList.Add(serverSession);
-
-                    return true;
+                    SessionList.Add(serverSession);
+                    SessionCreatedTrigger();
+                    return;
                 }
             }
-            return false;
+            throw new Exception("Unable to create new session");
         }
 
         public void RemoveSession(Session serverSession)
         {
-            lock (_sessionList)
+            if (serverSession == null) throw new ArgumentNullException("serverSession");
+            lock (SessionList)
             {
-                if (_sessionList.Contains(serverSession))
+                if (SessionList.Contains(serverSession))
                 {
-                    _sessionList.Remove(serverSession);
+                    SessionList.Remove(serverSession);
+                    SessionRemovedTrigger();
+                    return;
                 }
             }
+            throw new Exception("Unable to remove session");
         }
     }
 }

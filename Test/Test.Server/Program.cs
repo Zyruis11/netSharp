@@ -1,4 +1,5 @@
 ﻿using System;
+using netSharp.TCP.Events;
 
 namespace Test.Server
 {
@@ -25,7 +26,31 @@ namespace Test.Server
             var serverBindAddr = "127.0.0.1";
             var serverBindPort = 3000;
             _server = new netSharp.TCP.Server(serverBindAddr, serverBindPort, 10, 100);
+            _server.ClientCreated += HandleClientCreated;
+            _server.ClientRemoved += HandleClientRemoved;
+            _server.NewClientRequest += HandleNewClientRequest;
+            _server.ListenerPaused += HandleListenerPaused;
             Console.Write("Started server at {0}\n\n", DateTime.Now);
+        }
+
+        private void HandleClientCreated(object sender, EventDataArgs e)
+        {
+            Console.WriteLine("New Client Joined");
+        }
+
+        private void HandleClientRemoved(object sender, EventDataArgs e)
+        {
+            Console.WriteLine("Client Removed");
+        }
+
+        private void HandleNewClientRequest(object sender, EventDataArgs e)
+        {
+            Console.WriteLine("New Client Request");
+        }
+
+        private void HandleListenerPaused(object sender, EventDataArgs e)
+        {
+            Console.WriteLine("Listener Paused");
         }
 
         private void InputLoop()

@@ -1,17 +1,17 @@
 ﻿namespace netSharp.TCP.Events
 {
-    public class TcpEventArgs
+    public class EventDataArgs
     {
-        public TcpEventArgs(string s = null, byte[] b = null)
+        public EventDataArgs(string @message = null, byte[] @byte = null)
         {
-            if (s != null)
+            if (message != null)
             {
-                Message = s;
+                Message = @message;
             }
             ;
-            if (b != null)
+            if (@byte != null)
             {
-                ByteArray = b;
+                ByteArray = @byte;
             }
         }
 

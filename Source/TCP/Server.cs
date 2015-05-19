@@ -5,6 +5,7 @@ using System.Net.Sockets;
 using System.Threading;
 using System.Timers;
 using netSharp.RequestHandling;
+using netSharp.TCP.Events;
 using netSharp.TCP.Features;
 using Timer = System.Timers.Timer;
 
@@ -16,9 +17,39 @@ namespace netSharp.TCP
         private readonly int _listenPort;
         private readonly Timer _serverTimer;
         private readonly TcpListener _tcpListener;
-        private readonly Guid serverGuid;
+        private readonly Guid _serverGuid;
         private int _clientFactoryExceptionCount;
         private Thread _clientFactoryThread;
+
+        public event EventHandler<EventDataArgs> ClientRemoved;
+        public event EventHandler<EventDataArgs> ClientCreated;
+        public event EventHandler<EventDataArgs> ListenerPaused;
+        public event EventHandler<EventDataArgs> NewClientRequest;
+
+        // Event Handler-Trigger Binding
+        protected virtual void EventInvocationWrapper(EventDataArgs eventDataArgs,
+            EventHandler<EventDataArgs> eventHandler)
+        {
+            if (eventHandler != null)
+            {
+                eventHandler(this, eventDataArgs);
+            }
+        }
+
+        public void ClientCreatedTrigger()
+        {
+            EventInvocationWrapper(new EventDataArgs(), ClientCreated);
+        }
+
+        public void ListenerPausedTrigger()
+        {
+            EventInvocationWrapper(new EventDataArgs(), ListenerPaused);
+        }
+
+        public void ClientRemovedTrigger()
+        {
+            EventInvocationWrapper(new EventDataArgs(), ClientRemoved);
+        }
 
         public Server(string serverBindAddr, int serverBindPort, int maxClientRequests, int maxClientCount)
         {
@@ -38,7 +69,7 @@ namespace netSharp.TCP
             _listenAddress = IPAddress.Parse(serverBindAddr);
             _listenPort = serverBindPort;
 
-            serverGuid = Guid.NewGuid();
+            _serverGuid = Guid.NewGuid();
 
             StartClientSessionFactory();
         }
@@ -51,13 +82,13 @@ namespace netSharp.TCP
 
         public void Dispose()
         {
-            _tcpListener.Stop();
+            _tcpListener.Stop(); // Stop the session factory TcpListener.
             IsDisposed = true;
         }
 
         private void ServerTimerTick(object source, ElapsedEventArgs eea)
         {
-            ClientGarbageCollector();
+            Heartbeat.Pulse(SessionList);
 
             foreach (Session session in SessionList)
             {
@@ -66,15 +97,6 @@ namespace netSharp.TCP
                     session.SendString("GUID_GET");
                 }
             }
-        }
-
-        /// <summary>
-        ///     Iterates through the client list, any clients meeting conditions are added to a disposal list and then disposed.
-        ///     Method is thread-safe.
-        /// </summary>
-        private void ClientGarbageCollector()
-        {
-            Heartbeat.Pulse(SessionList);
         }
 
         private void SessionFactory()
@@ -88,13 +110,9 @@ namespace netSharp.TCP
                 try
                 {
                     var tcpClient = _tcpListener.AcceptTcpClient();
-                    var clientObject = new Session(0, null, serverGuid, tcpClient);
-                    var addSuccess = AddClient(clientObject);
-
-                    if (!addSuccess)
-                    {
-                        clientObject.Dispose();
-                    }
+                    if (SessionList.Count >= MaxClientCount) throw new Exception("Unable to add client");
+                    var clientObject = new Session(0, null, _serverGuid, tcpClient);
+                    AddClient(clientObject);
                 }
                 catch (Exception)
                 {
@@ -130,23 +148,23 @@ namespace netSharp.TCP
             _clientFactoryThread.Start();
         }
 
-        public bool AddClient(Session client)
+        public void AddClient(Session client)
         {
             lock (SessionList)
             {
-                if (SessionList.Count >= MaxClientCount) return false;
+                if (client == null) throw new Exception("Invalid client specified for addition");
                 SessionList.Add(client);
-                return true;
+                ClientCreatedTrigger();
             }
         }
 
-        public bool RemoveClient(Session client)
+        public void RemoveClient(Session client)
         {
             lock (SessionList)
             {
-                if (!SessionList.Contains(client)) return false;
+                if (!SessionList.Contains(client)) throw new Exception("Invalid client specified for removal");
                 SessionList.Remove(client);
-                return true;
+                ClientRemovedTrigger();
             }
         }
 

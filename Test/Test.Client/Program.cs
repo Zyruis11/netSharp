@@ -25,15 +25,38 @@ namespace Test.Client
         {
             Console.Write("Starting up...\n\n");
             _client = new netSharp.TCP.Client();
-            _client.Intialize();
-            _client.SessionCreated += HandleNewSessionEvent;
-            Console.Write("Started client at {0}\n\n", DateTime.Now);
+            _client.SessionCreated += HandleSessionCreatedEvent;
+            _client.SessionRemoved += HandleSessionRemovedEvent;
+            _client.SessionPaused += HandleSessionPausedEvent;
+            _client.ServerDataReturn += HandleServerDataReturn;
+            _client.ServerMessage += HandleServerMessage;
 
+            Console.Write("Started client at {0}\n\n", DateTime.Now);
         }
 
-        private void HandleNewSessionEvent(object sender, TcpEventArgs tcpEventArgs)
+        private void HandleServerMessage(object sender, EventDataArgs e)
         {
-            Console.WriteLine(tcpEventArgs.Message);
+            Console.WriteLine("New Server Message Recieved");
+        }
+
+        private void HandleServerDataReturn(object sender, EventDataArgs e)
+        {
+            Console.WriteLine("Server Data Returned");
+        }
+
+        private void HandleSessionPausedEvent(object sender, EventDataArgs e)
+        {
+            Console.WriteLine("Session Paused");
+        }
+
+        private void HandleSessionRemovedEvent(object sender, EventDataArgs e)
+        {
+            Console.WriteLine("Session Removed");
+        }
+
+        private void HandleSessionCreatedEvent(object sender, EventDataArgs e)
+        {
+            Console.WriteLine("Session Created");
         }
 
         private void InputLoop()
@@ -52,13 +75,9 @@ namespace Test.Client
 
             switch (commandToUpper)
             {
-                case "SESSIONS":
-                {
-                    break;
-                }
                 case "CONNECT":
                 {
-                    if (_client._sessionList.Count < _client._maxSessionCount)
+                    if (_client.SessionList.Count < _client.MaxSessionCount)
                     {
                         var remoteIpAddress = IPAddress.Parse("127.0.0.1");
                         var remotePort = 3000;
@@ -68,7 +87,7 @@ namespace Test.Client
                 }
                 case "DISCONNECT":
                 {
-                    foreach (var session in _client._sessionList)
+                    foreach (var session in _client.SessionList)
                     {
                         session.Dispose();
                     }

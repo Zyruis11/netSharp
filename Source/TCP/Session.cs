@@ -210,7 +210,7 @@ namespace netSharp.TCP
             }
             else if (!_tcpClient.Connected)
             {
-                throw new Exception("Connection not available.");
+                //throw new Exception("Connection not available.");
             }
         }
     }
