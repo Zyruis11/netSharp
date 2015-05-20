@@ -90,13 +90,13 @@ namespace netSharp.TCP
         {
             Heartbeat.Pulse(SessionList);
 
-            foreach (Session session in SessionList)
-            {
-                if (session.RemoteEndpointGuid == Guid.Empty)
-                {
-                    session.SendString("GUID_GET");
-                }
-            }
+            //foreach (Session session in SessionList)
+            //{
+            //    if (session.RemoteEndpointGuid == Guid.Empty)
+            //    {
+            //        session.SendString("GUID_GET");
+            //    }
+            //}
         }
 
         private void SessionFactory()
@@ -133,13 +133,13 @@ namespace netSharp.TCP
 
         public void ClientBroadcast(string broadcastString)
         {
-            lock (SessionList)
-            {
-                foreach (var client in SessionList)
-                {
-                    client.SendString(broadcastString);
-                }
-            }
+            //lock (SessionList)
+            //{
+            //    foreach (var client in SessionList)
+            //    {
+            //        client.SendString(broadcastString);
+            //    }
+            //}
         }
 
         public void StartClientSessionFactory()

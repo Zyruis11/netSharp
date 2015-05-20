@@ -93,6 +93,11 @@ namespace Test.Client
                     }
                     break;
                 }
+                case"TEST":
+                {
+                    _client.Test();
+                    break;
+                }
             }
         }
     }

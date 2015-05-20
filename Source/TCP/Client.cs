@@ -71,14 +71,6 @@ namespace netSharp.TCP
         public void ClientTimerTick(object source, ElapsedEventArgs eea)
         {
             Heartbeat.Pulse(SessionList);
-
-            foreach (var session in SessionList)
-            {
-                if (session.RemoteEndpointGuid == Guid.Empty)
-                {
-                    session.SendString("GUID_GET");
-                }
-            }
         }
 
         public void NewSession(IPAddress remoteIpAddress, int remotePort)
@@ -116,6 +108,14 @@ namespace netSharp.TCP
                 }
             }
             throw new Exception("Unable to remove session");
+        }
+
+        public void Test()
+        {
+            foreach (Session session in SessionList)
+            {
+                session.Test();
+            }
         }
     }
 }

@@ -1,8 +1,11 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
+using netSharp.TCP.Classes;
 
 namespace netSharp.TCP
 {
@@ -107,111 +110,87 @@ namespace netSharp.TCP
             while (!IsDisposed)
             {
                 _networkStream.Flush();
+                ReadStream _readStream = new ReadStream();
 
-                var message = new byte[8192];
                 var bytesRead = 0;
+                
+                var guidBytes = new byte[16];
+                bytesRead = _networkStream.Read(guidBytes, 0, guidBytes.Length);
 
-                try
+                if (RemoteEndpointGuid == Guid.Empty)
                 {
-                    bytesRead = _networkStream.Read(message, 0, 8192);
-                        //to-do: Allow variable buffer size                  
-
-                    if (bytesRead == 0)
-                    {
-                        break;
-                    }
-                    _asciiEncoding = new ASCIIEncoding();
-                    var clientString = _asciiEncoding.GetString(message, 0, bytesRead);
-                    RequestHandler(clientString);
+                    RemoteEndpointGuid = new Guid(guidBytes);
                 }
-                catch (Exception)
+
+                var payloadTypeBytes = new byte[4];
+                bytesRead += _networkStream.Read(payloadTypeBytes, 0, payloadTypeBytes.Length);
+                _readStream.payloadType = BitConverter.ToInt32(payloadTypeBytes, 0);
+
+                var payloadLengthBytes = new byte[4];
+                bytesRead += _networkStream.Read(payloadLengthBytes, 0, payloadLengthBytes.Length);
+                _readStream.payloadLength = BitConverter.ToInt32(payloadLengthBytes, 0);
+
+                var payloadBuffer = new byte[_readStream.payloadLength];
+                bytesRead += _networkStream.Read(payloadBuffer, 0, payloadBuffer.Length);
+                _readStream.payload = payloadBuffer;
+
+                if (bytesRead == 0)
                 {
-                    //to-do
                     break;
                 }
+
+                RequestHandler(_readStream);
             }
         }
 
-        public void RequestHandler(string clientString)
+        private void StreamWriter(byte[] byteArray)
         {
-            var clientStringArray = clientString.Split('_');
-
-            var commandCharacters = clientStringArray[0];
-            string innerString = null;
-            if (clientStringArray.Length > 1)
-            {
-                innerString = clientStringArray[1];
-            }
-
-            switch (commandCharacters)
-            {
-                case "CMD":
-                {
-                    //to-do: Fire event on server
-                    break;
-                }
-
-                case "HRT":
-                {
-                    if (innerString == null)
-                    {
-                        SendString("HRT_ACK");
-                    }
-                    else
-                    {
-                        LastTwoWay = 0;
-                    }
-                    break;
-                }
-                case "GUID":
-                {
-                    if (innerString == null)
-                    {
-                        break;
-                    }
-                    if (innerString == "GET")
-                    {
-                        var guidString = string.Format("GUID_{0}", LocalEndpointGuid.ToString());
-                        SendString(guidString);
-                    }
-                    else
-                    {
-                        RemoteEndpointGuid = Guid.Parse(innerString);
-                    }
-                    break;
-                }
-                default:
-                {
-                    SendString("Unexpected request type recieved.");
-                    break;
-                }
-            }
+            _networkStream.Write(byteArray, 0, byteArray.Length);
         }
 
-        public void SendHeartbeat(bool isAck = false)
+        public byte[] BuildPacket(Guid @guid, int @payloadType, byte[] @payload)
         {
-            if (isAck)
-            {
-                SendString("HRT_ACK");
-            }
-            else
-            {
-                SendString("HRT");
-            }
+            // Create a byte array list to hold the byte arrays
+            List<byte[]> byteArrays = new List<byte[]>();
+            int payloadLength = @payload.Length;
+
+            // Use various converters to get the byte arrays for the objects passed into the function.
+            byte[] guidByteArray = @guid.ToByteArray();
+            byte[] payloadTypeByteArray = BitConverter.GetBytes(payloadType);
+            byte[] payloadLengthByteArray = BitConverter.GetBytes(payloadLength);
+
+            // Add the byte arrays to a list
+            byteArrays.Add(guidByteArray);
+            byteArrays.Add(payloadTypeByteArray);
+            byteArrays.Add(payloadLengthByteArray);
+            byteArrays.Add(@payload);
+
+            // Return the return value of the byte array list combinator
+            return ByteArrayListCombinator(byteArrays);
         }
 
-        public void SendString(string sendString)
+        private byte[] ByteArrayListCombinator(List<byte[]> @byteArrays)
         {
-            if (_tcpClient.Connected)
+            byte[] returnArray = new byte[byteArrays.Sum(a => a.Length)];
+            int offset = 0;
+            foreach (byte[] array in byteArrays)
             {
-                _asciiEncoding = new ASCIIEncoding();
-                var buffer = _asciiEncoding.GetBytes(sendString);
-                _networkStream.Write(buffer, 0, buffer.Length);
+                Buffer.BlockCopy(array, 0, returnArray, offset, array.Length);
+                offset += array.Length;
             }
-            else if (!_tcpClient.Connected)
-            {
-                //throw new Exception("Connection not available.");
-            }
+            return returnArray;
+        }
+
+
+        public void RequestHandler(ReadStream readStream)
+        {
+           
+        }
+
+        public void Test()
+        {
+            byte[] payload = new byte[1653];
+            StreamWriter(BuildPacket(LocalEndpointGuid, 1, payload));
         }
     }
 }

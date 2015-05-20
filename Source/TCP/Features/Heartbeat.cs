@@ -22,7 +22,6 @@ namespace netSharp.TCP.Features
                     session.HelloInterval--;
                     if (session.HelloInterval <= 0)
                     {
-                        session.SendHeartbeat();
                         session.HelloInterval = 10;
                     }
                 }
