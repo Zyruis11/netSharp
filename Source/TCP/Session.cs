@@ -6,6 +6,7 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
 using netSharp.TCP.Classes;
+using netSharp.TCP.Experimental;
 
 namespace netSharp.TCP
 {
@@ -21,7 +22,7 @@ namespace netSharp.TCP
         /// <param name="ipEndPoint"></param>
         /// <param name="sessionType">0 = Session to Client, 1 = Session to ToServer</param>
         /// <param name="tcpClient"></param>
-        public Session(int sessionType, IPEndPoint ipEndPoint, Guid localEndpointGuid, TcpClient tcpClient = null)
+        public Session(int sessionType, IPEndPoint ipEndPoint, string localGuid, TcpClient tcpClient = null)
         {
             switch (sessionType)
             {
@@ -52,14 +53,15 @@ namespace netSharp.TCP
                 }
             }
 
-            LocalEndpointGuid = localEndpointGuid;
+            LocalEndpointGuid = localGuid;
+            RemoteEndpointGuid = "notset";
             Connect();
         }
 
         public bool IsDisposed { get; set; }
         public int LastTwoWay { get; set; }
-        public Guid RemoteEndpointGuid { get; set; }
-        public Guid LocalEndpointGuid { get; set; }
+        public string RemoteEndpointGuid { get; set; }
+        public string LocalEndpointGuid { get; set; }
         public IPEndPoint RemoteEndpointIp { get; set; }
         public string RemoteEndpointIpAddressPort { get; set; }
         public int HelloInterval { get; set; }
@@ -68,11 +70,6 @@ namespace netSharp.TCP
         {
             Disconnect();
             IsDisposed = true;
-        }
-
-        public string GetFriendlyEndpointGuid()
-        {
-            return Convert.ToString(RemoteEndpointGuid).Remove(5);
         }
 
         private void Connect()
@@ -110,36 +107,36 @@ namespace netSharp.TCP
             while (!IsDisposed)
             {
                 _networkStream.Flush();
-                ReadStream _readStream = new ReadStream();
+                CurrentStream currentStream = new CurrentStream();
 
                 var bytesRead = 0;
                 
-                var guidBytes = new byte[16];
+                var guidBytes = new byte[4];
                 bytesRead = _networkStream.Read(guidBytes, 0, guidBytes.Length);
 
-                if (RemoteEndpointGuid == Guid.Empty)
+                if (RemoteEndpointGuid.Length != 4)
                 {
-                    RemoteEndpointGuid = new Guid(guidBytes);
+                    RemoteEndpointGuid = Encoding.Default.GetString(guidBytes);
                 }
 
-                var payloadTypeBytes = new byte[4];
+                var payloadTypeBytes = new byte[2];
                 bytesRead += _networkStream.Read(payloadTypeBytes, 0, payloadTypeBytes.Length);
-                _readStream.payloadType = BitConverter.ToInt32(payloadTypeBytes, 0);
+                currentStream.payloadType = BitConverter.ToUInt16(payloadTypeBytes, 0);
 
-                var payloadLengthBytes = new byte[4];
+                var payloadLengthBytes = new byte[2];
                 bytesRead += _networkStream.Read(payloadLengthBytes, 0, payloadLengthBytes.Length);
-                _readStream.payloadLength = BitConverter.ToInt32(payloadLengthBytes, 0);
+                currentStream.payloadLength = BitConverter.ToUInt16(payloadLengthBytes, 0);
 
-                var payloadBuffer = new byte[_readStream.payloadLength];
+                var payloadBuffer = new byte[currentStream.payloadLength];
                 bytesRead += _networkStream.Read(payloadBuffer, 0, payloadBuffer.Length);
-                _readStream.payload = payloadBuffer;
+                currentStream.payload = payloadBuffer;
 
                 if (bytesRead == 0)
                 {
                     break;
                 }
 
-                RequestHandler(_readStream);
+                RequestHandler(currentStream);
             }
         }
 
@@ -148,16 +145,18 @@ namespace netSharp.TCP
             _networkStream.Write(byteArray, 0, byteArray.Length);
         }
 
-        public byte[] BuildPacket(Guid @guid, int @payloadType, byte[] @payload)
+        public byte[] BuildPacket(string @sGuid, ushort @payloadType, byte[] @payload)
         {
             // Create a byte array list to hold the byte arrays
             List<byte[]> byteArrays = new List<byte[]>();
-            int payloadLength = @payload.Length;
+
+            // Get the payload length
+            ushort payloadLengthUshort = Convert.ToUInt16(@payload.Length);
 
             // Use various converters to get the byte arrays for the objects passed into the function.
-            byte[] guidByteArray = @guid.ToByteArray();
+            byte[] guidByteArray = Encoding.Default.GetBytes(sGuid);
             byte[] payloadTypeByteArray = BitConverter.GetBytes(payloadType);
-            byte[] payloadLengthByteArray = BitConverter.GetBytes(payloadLength);
+            byte[] payloadLengthByteArray = BitConverter.GetBytes(payloadLengthUshort);
 
             // Add the byte arrays to a list
             byteArrays.Add(guidByteArray);
@@ -182,7 +181,7 @@ namespace netSharp.TCP
         }
 
 
-        public void RequestHandler(ReadStream readStream)
+        public void RequestHandler(CurrentStream currentStream)
         {
            
         }

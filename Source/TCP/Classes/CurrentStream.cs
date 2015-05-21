@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 
 namespace netSharp.TCP.Classes
 {
-    public class ReadStream
+    public class CurrentStream
     {
-        public int @payloadType { get; set; }
+        public ushort @payloadType { get; set; }
         public int @payloadLength { get; set; }
         public byte[] @payload { get; set; }
     }

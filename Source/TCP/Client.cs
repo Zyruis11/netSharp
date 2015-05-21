@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Net;
 using System.Timers;
 using netSharp.TCP.Events;
+using netSharp.TCP.Experimental;
 using netSharp.TCP.Features;
 
 namespace netSharp.TCP
@@ -13,11 +14,11 @@ namespace netSharp.TCP
         public readonly int MaxSessionCount = 10;
         public readonly List<Session> SessionList = new List<Session>();
         private bool _isDisposed;
-        public Guid ClientGuid;
+        public string ClientGuid;
 
         public Client()
         {
-            ClientGuid = Guid.NewGuid();
+            ClientGuid = ShortGuid.NewShortGuid();
             _clientTimer = new Timer(1000);
             _clientTimer.Elapsed += ClientTimerTick;
             _clientTimer.Enabled = true;

@@ -6,6 +6,7 @@ using System.Threading;
 using System.Timers;
 using netSharp.RequestHandling;
 using netSharp.TCP.Events;
+using netSharp.TCP.Experimental;
 using netSharp.TCP.Features;
 using Timer = System.Timers.Timer;
 
@@ -17,7 +18,7 @@ namespace netSharp.TCP
         private readonly int _listenPort;
         private readonly Timer _serverTimer;
         private readonly TcpListener _tcpListener;
-        private readonly Guid _serverGuid;
+        private readonly string _serverGuid;
         private int _clientFactoryExceptionCount;
         private Thread _clientFactoryThread;
 
@@ -69,7 +70,7 @@ namespace netSharp.TCP
             _listenAddress = IPAddress.Parse(serverBindAddr);
             _listenPort = serverBindPort;
 
-            _serverGuid = Guid.NewGuid();
+            _serverGuid = ShortGuid.NewShortGuid();
 
             StartClientSessionFactory();
         }
@@ -89,14 +90,6 @@ namespace netSharp.TCP
         private void ServerTimerTick(object source, ElapsedEventArgs eea)
         {
             Heartbeat.Pulse(SessionList);
-
-            //foreach (Session session in SessionList)
-            //{
-            //    if (session.RemoteEndpointGuid == Guid.Empty)
-            //    {
-            //        session.SendString("GUID_GET");
-            //    }
-            //}
         }
 
         private void SessionFactory()

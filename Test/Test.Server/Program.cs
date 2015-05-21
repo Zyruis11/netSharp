@@ -109,7 +109,7 @@ namespace Test.Server
                     {
                         foreach (var session in _server.SessionList)
                         {
-                            Console.Write("{0}         {1}            {2}\n", session.GetFriendlyEndpointGuid(),
+                            Console.Write("{0}         {1}            {2}\n", session.RemoteEndpointGuid,
                                 session.LastTwoWay,
                                 session.RemoteEndpointIpAddressPort);
                         }
