@@ -1,4 +1,4 @@
-﻿namespace netSharp.TCP.Events
+﻿namespace netSharp.Events
 {
     public class EventDataArgs
     {

@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using netSharp.TCP;
 
 namespace netSharp.RequestHandling
 {

@@ -2,11 +2,11 @@
 using System.Collections.Generic;
 using System.Net;
 using System.Timers;
-using netSharp.TCP.Events;
-using netSharp.TCP.Experimental;
-using netSharp.TCP.Features;
+using netSharp.Events;
+using netSharp.Experimental;
+using netSharp.Features;
 
-namespace netSharp.TCP
+namespace netSharp
 {
     public class Client : IDisposable
     {
@@ -109,14 +109,6 @@ namespace netSharp.TCP
                 }
             }
             throw new Exception("Unable to remove session");
-        }
-
-        public void Test()
-        {
-            foreach (Session session in SessionList)
-            {
-                session.Test();
-            }
         }
     }
 }

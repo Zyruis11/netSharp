@@ -4,13 +4,13 @@ using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using System.Timers;
+using netSharp.Events;
+using netSharp.Experimental;
+using netSharp.Features;
 using netSharp.RequestHandling;
-using netSharp.TCP.Events;
-using netSharp.TCP.Experimental;
-using netSharp.TCP.Features;
 using Timer = System.Timers.Timer;
 
-namespace netSharp.TCP
+namespace netSharp
 {
     public class Server : IDisposable
     {

@@ -1,14 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
-using netSharp.TCP.Classes;
-using netSharp.TCP.Experimental;
+using netSharp.Classes;
+using Stream = netSharp.Classes.Stream;
 
-namespace netSharp.TCP
+namespace netSharp
 {
     public class Session : IDisposable
     {
@@ -106,37 +107,24 @@ namespace netSharp.TCP
         {
             while (!IsDisposed)
             {
-                _networkStream.Flush();
-                CurrentStream currentStream = new CurrentStream();
+                if (_networkStream.CanRead)
+                {      
+                    var streamIndex = 10; // Set the stream index to the location of the payload length value in the stream
+                    byte[] payloadLengthBuffer = new byte[2]; // Create a buffer to hold the contents of the payload length value
+                    streamIndex = _networkStream.Read(payloadLengthBuffer,streamIndex, payloadLengthBuffer.Length);
+                                    
+                    byte[] streamBuffer = new byte[StreamEngine.GetPayloadLength(payloadLengthBuffer) + streamIndex]; // Create a buffer to hold the contents of the full stream
 
-                var bytesRead = 0;
-                
-                var guidBytes = new byte[4];
-                bytesRead = _networkStream.Read(guidBytes, 0, guidBytes.Length);
+                    _networkStream.Seek(0, SeekOrigin.Begin); // Rewind the stream
+                    
+                    streamIndex = 0; // Reset the stream index
 
-                if (RemoteEndpointGuid.Length != 4)
-                {
-                    RemoteEndpointGuid = Encoding.Default.GetString(guidBytes);
+                    streamIndex = _networkStream.Read(streamBuffer, streamIndex, streamBuffer.Length); 
+                    Stream stream = StreamEngine.ByteArrayToStream(streamBuffer); // Pass the buffer to the deserializer
+
+                    _networkStream.Flush();
                 }
-
-                var payloadTypeBytes = new byte[2];
-                bytesRead += _networkStream.Read(payloadTypeBytes, 0, payloadTypeBytes.Length);
-                currentStream.payloadType = BitConverter.ToUInt16(payloadTypeBytes, 0);
-
-                var payloadLengthBytes = new byte[2];
-                bytesRead += _networkStream.Read(payloadLengthBytes, 0, payloadLengthBytes.Length);
-                currentStream.payloadLength = BitConverter.ToUInt16(payloadLengthBytes, 0);
-
-                var payloadBuffer = new byte[currentStream.payloadLength];
-                bytesRead += _networkStream.Read(payloadBuffer, 0, payloadBuffer.Length);
-                currentStream.payload = payloadBuffer;
-
-                if (bytesRead == 0)
-                {
-                    break;
-                }
-
-                RequestHandler(currentStream);
+                //to-do: Pass the Stream to the handler
             }
         }
 
@@ -145,51 +133,5 @@ namespace netSharp.TCP
             _networkStream.Write(byteArray, 0, byteArray.Length);
         }
 
-        public byte[] BuildPacket(string @sGuid, ushort @payloadType, byte[] @payload)
-        {
-            // Create a byte array list to hold the byte arrays
-            List<byte[]> byteArrays = new List<byte[]>();
-
-            // Get the payload length
-            ushort payloadLengthUshort = Convert.ToUInt16(@payload.Length);
-
-            // Use various converters to get the byte arrays for the objects passed into the function.
-            byte[] guidByteArray = Encoding.Default.GetBytes(sGuid);
-            byte[] payloadTypeByteArray = BitConverter.GetBytes(payloadType);
-            byte[] payloadLengthByteArray = BitConverter.GetBytes(payloadLengthUshort);
-
-            // Add the byte arrays to a list
-            byteArrays.Add(guidByteArray);
-            byteArrays.Add(payloadTypeByteArray);
-            byteArrays.Add(payloadLengthByteArray);
-            byteArrays.Add(@payload);
-
-            // Return the return value of the byte array list combinator
-            return ByteArrayListCombinator(byteArrays);
-        }
-
-        private byte[] ByteArrayListCombinator(List<byte[]> @byteArrays)
-        {
-            byte[] returnArray = new byte[byteArrays.Sum(a => a.Length)];
-            int offset = 0;
-            foreach (byte[] array in byteArrays)
-            {
-                Buffer.BlockCopy(array, 0, returnArray, offset, array.Length);
-                offset += array.Length;
-            }
-            return returnArray;
-        }
-
-
-        public void RequestHandler(CurrentStream currentStream)
-        {
-           
-        }
-
-        public void Test()
-        {
-            byte[] payload = new byte[1653];
-            StreamWriter(BuildPacket(LocalEndpointGuid, 1, payload));
-        }
     }
 }

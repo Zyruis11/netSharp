@@ -1,11 +1,11 @@
 ﻿using System;
-using netSharp.TCP.Events;
+using netSharp.Events;
 
 namespace Test.Server
 {
     internal class Program
     {
-        private netSharp.TCP.Server _server;
+        private netSharp.Server _server;
         private bool IsDisposed;
 
         public void Dispose() //to-do: Call dispose method
@@ -25,7 +25,7 @@ namespace Test.Server
             Console.Write("Starting up...\n\n");
             var serverBindAddr = "127.0.0.1";
             var serverBindPort = 3000;
-            _server = new netSharp.TCP.Server(serverBindAddr, serverBindPort, 10, 100);
+            _server = new netSharp.Server(serverBindAddr, serverBindPort, 10, 100);
             _server.ClientCreated += HandleClientCreated;
             _server.ClientRemoved += HandleClientRemoved;
             _server.NewClientRequest += HandleNewClientRequest;

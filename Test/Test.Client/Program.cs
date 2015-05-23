@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Net;
-using netSharp.TCP.Events;
+using netSharp.Events;
 
 namespace Test.Client
 {
     internal class Program : IDisposable
     {
-        private netSharp.TCP.Client _client;
+        private netSharp.Client _client;
         private bool _isDisposed;
 
         public void Dispose() //to-do: Call dispose method
@@ -24,7 +24,7 @@ namespace Test.Client
         private void Initialize()
         {
             Console.Write("Starting up...\n\n");
-            _client = new netSharp.TCP.Client();
+            _client = new netSharp.Client();
             _client.SessionCreated += HandleSessionCreatedEvent;
             _client.SessionRemoved += HandleSessionRemovedEvent;
             _client.SessionPaused += HandleSessionPausedEvent;
@@ -91,11 +91,6 @@ namespace Test.Client
                     {
                         session.Dispose();
                     }
-                    break;
-                }
-                case"TEST":
-                {
-                    _client.Test();
                     break;
                 }
             }

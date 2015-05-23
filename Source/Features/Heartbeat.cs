@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace netSharp.TCP.Features
+namespace netSharp.Features
 {
     internal static class Heartbeat
     {

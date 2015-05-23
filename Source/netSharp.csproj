@@ -39,16 +39,17 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Classes\Stream.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="RequestHandling\Request.cs" />
-    <Compile Include="RequestHandling\RequestBroker.cs" />
-    <Compile Include="TCP\Classes\CurrentStream.cs" />
-    <Compile Include="TCP\Client.cs" />
-    <Compile Include="TCP\Events\EventArgs.cs" />
-    <Compile Include="TCP\Experimental\ShortGuid.cs" />
-    <Compile Include="TCP\Features\Heartbeat.cs" />
-    <Compile Include="TCP\Session.cs" />
-    <Compile Include="TCP\Server.cs" />
+    <Compile Include="Classes\Request.cs" />
+    <Compile Include="Features\RequestBroker.cs" />
+    <Compile Include="Classes\StreamEngine.cs" />
+    <Compile Include="Client.cs" />
+    <Compile Include="Events\EventArgs.cs" />
+    <Compile Include="Experimental\ShortGuid.cs" />
+    <Compile Include="Features\Heartbeat.cs" />
+    <Compile Include="Session.cs" />
+    <Compile Include="Server.cs" />
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
