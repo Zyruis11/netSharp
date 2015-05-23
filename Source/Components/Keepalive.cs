@@ -1,10 +1,11 @@
 ﻿using System.Collections.Generic;
+using netSharp.Objects;
 
-namespace netSharp.Features
+namespace netSharp.Components
 {
-    internal static class Heartbeat
+    internal static class Keepalive
     {
-        public static void Pulse(List<Session> sessionList)
+        public static void SessionManager(List<Session> sessionList)
         {
             var clientsToDispose = new List<Session>();
 
@@ -12,8 +13,8 @@ namespace netSharp.Features
             {
                 foreach (var session in sessionList)
                 {
-                    session.LastTwoWay += 1;
-                    if (session.LastTwoWay >= 30)
+                    session.LastHello += 1;
+                    if (session.LastHello >= 30)
                     {
                         clientsToDispose.Add(session);
                         continue;
@@ -22,6 +23,7 @@ namespace netSharp.Features
                     session.HelloInterval--;
                     if (session.HelloInterval <= 0)
                     {
+                        session.SendHello();
                         session.HelloInterval = 10;
                     }
                 }
@@ -32,6 +34,17 @@ namespace netSharp.Features
                     sessionList.Remove(client);
                 }
             }
+        }
+
+        public static void ProcessRecievedHello(Session session)
+        {
+            session.LastHello = 0;
+        }
+
+        public static DataStream CreateHelloStream(string localEndpointGuid)
+        {
+            DataStream dataStream = new DataStream(localEndpointGuid, 0, "");
+            return dataStream;
         }
     }
 }

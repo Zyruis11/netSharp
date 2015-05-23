@@ -4,9 +4,9 @@ using netSharp.Events;
 
 namespace Test.Client
 {
-    internal class Program : IDisposable
+    internal class TestClient : IDisposable
     {
-        private netSharp.Client _client;
+        private netSharp.Objects.Client _client;
         private bool _isDisposed;
 
         public void Dispose() //to-do: Call dispose method
@@ -16,7 +16,7 @@ namespace Test.Client
 
         private static void Main(string[] args)
         {
-            var program = new Program();
+            var program = new TestClient();
             program.Initialize();
             program.InputLoop();
         }
@@ -24,7 +24,7 @@ namespace Test.Client
         private void Initialize()
         {
             Console.Write("Starting up...\n\n");
-            _client = new netSharp.Client();
+            _client = new netSharp.Objects.Client();
             _client.SessionCreated += HandleSessionCreatedEvent;
             _client.SessionRemoved += HandleSessionRemovedEvent;
             _client.SessionPaused += HandleSessionPausedEvent;
@@ -34,27 +34,27 @@ namespace Test.Client
             Console.Write("Started client at {0}\n\n", DateTime.Now);
         }
 
-        private void HandleServerMessage(object sender, EventDataArgs e)
+        private void HandleServerMessage(object sender, SessionEventArgs e)
         {
             Console.WriteLine("New Server Message Recieved");
         }
 
-        private void HandleServerDataReturn(object sender, EventDataArgs e)
+        private void HandleServerDataReturn(object sender, SessionEventArgs e)
         {
             Console.WriteLine("Server Data Returned");
         }
 
-        private void HandleSessionPausedEvent(object sender, EventDataArgs e)
+        private void HandleSessionPausedEvent(object sender, SessionEventArgs e)
         {
             Console.WriteLine("Session Paused");
         }
 
-        private void HandleSessionRemovedEvent(object sender, EventDataArgs e)
+        private void HandleSessionRemovedEvent(object sender, SessionEventArgs e)
         {
             Console.WriteLine("Session Removed");
         }
 
-        private void HandleSessionCreatedEvent(object sender, EventDataArgs e)
+        private void HandleSessionCreatedEvent(object sender, SessionEventArgs e)
         {
             Console.WriteLine("Session Created");
         }
@@ -91,6 +91,38 @@ namespace Test.Client
                     {
                         session.Dispose();
                     }
+                    break;
+                }
+                case "TEST":
+                {
+                    string test = "Hello World!";
+                    _client.SendData(test);
+                    break;
+                }
+                case "CLIENTS":
+                {
+                    //to-do: Show Information on Main
+                    Console.WriteLine("{0} Server sessions", _client.SessionList.Count);
+
+                    Console.WriteLine("Server Name | Last Heard | Server Address/Port");
+
+                    lock (_client.SessionList)
+                    {
+                        foreach (var session in _client.SessionList)
+                        {
+                            Console.WriteLine("{0}         {1}            {2}", session.RemoteEndpointGuid,
+                                session.LastHello,
+                                session.RemoteEndpointIpAddressPort);
+                        }
+                    }
+
+                    Console.WriteLine("{0} Clients connected", _client.SessionList.Count);
+
+                    break;
+                }
+                case "SHOW GUID":
+                {
+                    Console.WriteLine(_client.ClientGuid);
                     break;
                 }
             }

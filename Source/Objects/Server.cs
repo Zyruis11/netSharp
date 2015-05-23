@@ -4,13 +4,11 @@ using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using System.Timers;
+using netSharp.Components;
 using netSharp.Events;
-using netSharp.Experimental;
-using netSharp.Features;
-using netSharp.RequestHandling;
 using Timer = System.Timers.Timer;
 
-namespace netSharp
+namespace netSharp.Objects
 {
     public class Server : IDisposable
     {
@@ -22,34 +20,57 @@ namespace netSharp
         private int _clientFactoryExceptionCount;
         private Thread _clientFactoryThread;
 
-        public event EventHandler<EventDataArgs> ClientRemoved;
-        public event EventHandler<EventDataArgs> ClientCreated;
-        public event EventHandler<EventDataArgs> ListenerPaused;
-        public event EventHandler<EventDataArgs> NewClientRequest;
+        public event EventHandler<SessionEventArgs> ClientRemoved;
+        public event EventHandler<SessionEventArgs> ClientCreated;
+        public event EventHandler<SessionEventArgs> ClientDataReceived;
+        public event EventHandler<SessionEventArgs> ListenerPaused;
+        public event EventHandler<SessionEventArgs> NewClientRequest;
 
         // Event Handler-Trigger Binding
-        protected virtual void EventInvocationWrapper(EventDataArgs eventDataArgs,
-            EventHandler<EventDataArgs> eventHandler)
+        protected virtual void EventInvocationWrapper(SessionEventArgs sessionEventArgs,
+            EventHandler<SessionEventArgs> eventHandler)
         {
             if (eventHandler != null)
             {
-                eventHandler(this, eventDataArgs);
+                eventHandler(this, sessionEventArgs);
             }
         }
 
         public void ClientCreatedTrigger()
         {
-            EventInvocationWrapper(new EventDataArgs(), ClientCreated);
+            EventInvocationWrapper(new SessionEventArgs(), ClientCreated);
         }
 
         public void ListenerPausedTrigger()
         {
-            EventInvocationWrapper(new EventDataArgs(), ListenerPaused);
+            EventInvocationWrapper(new SessionEventArgs(), ListenerPaused);
         }
 
         public void ClientRemovedTrigger()
         {
-            EventInvocationWrapper(new EventDataArgs(), ClientRemoved);
+            EventInvocationWrapper(new SessionEventArgs(), ClientRemoved);
+        }
+
+        public void ClientDataReceivedTrigger(DataStream dataStream)
+        {
+            EventInvocationWrapper(new SessionEventArgs(dataStream), ClientDataReceived);
+        }
+
+        public void HandleSessionDataRecieved(object sender, SessionEventArgs e)
+        {
+           switch(e.DataStream.PayloadType)
+            {
+               case 0: // Hello
+                {
+                    Keepalive.ProcessRecievedHello(e.SessionReference);
+                    break;
+                }
+               case 11: // Application Data
+                {
+                    ClientDataReceivedTrigger(e.DataStream);
+                    break;
+                }
+            }
         }
 
         public Server(string serverBindAddr, int serverBindPort, int maxClientRequests, int maxClientCount)
@@ -59,7 +80,6 @@ namespace netSharp
 
             _tcpListener = new TcpListener(_listenAddress, _listenPort);
             SessionList = new List<Session>();
-            RequestBroker = new RequestBroker(this);
             _serverTimer = new Timer(1000);
             _serverTimer.Elapsed += ServerTimerTick;
             _serverTimer.Enabled = true;
@@ -77,7 +97,6 @@ namespace netSharp
 
         public List<Session> SessionList { get; set; }
         public bool IsDisposed { get; set; }
-        public RequestBroker RequestBroker { get; set; }
         public int MaxClientCount { get; set; }
         public int MaxClientRequests { get; set; }
 
@@ -89,7 +108,31 @@ namespace netSharp
 
         private void ServerTimerTick(object source, ElapsedEventArgs eea)
         {
-            Heartbeat.Pulse(SessionList);
+            Keepalive.SessionManager(SessionList);
+        }
+
+
+        public void SendData(object payloadObject, string destinationGuid = null)
+        {
+            DataStream DataStream = new DataStream(_serverGuid, 11, payloadObject);
+
+            if (destinationGuid != null)
+            {
+                foreach (Session session in SessionList)
+                {
+                    if (session.RemoteEndpointGuid == destinationGuid)
+                    {
+                        session.SendData(DataStream);
+                    }
+                }
+            }
+            else
+            {
+                foreach (Session session in SessionList)
+                {
+                    session.SendData(DataStream);
+                }
+            }
         }
 
         private void SessionFactory()
@@ -105,6 +148,7 @@ namespace netSharp
                     var tcpClient = _tcpListener.AcceptTcpClient();
                     if (SessionList.Count >= MaxClientCount) throw new Exception("Unable to add client");
                     var clientObject = new Session(0, null, _serverGuid, tcpClient);
+                    clientObject.SessionDataRecieved += HandleSessionDataRecieved;
                     AddClient(clientObject);
                 }
                 catch (Exception)
@@ -159,26 +203,6 @@ namespace netSharp
                 SessionList.Remove(client);
                 ClientRemovedTrigger();
             }
-        }
-
-        public bool AddClientRequest(string guid)
-        {
-            bool returnBool;
-            lock (RequestBroker)
-            {
-                returnBool = RequestBroker.AddRequest(guid);
-            }
-            return returnBool;
-        }
-
-        public bool RemoveClientRequest(string guid)
-        {
-            bool returnBool;
-            lock (RequestBroker)
-            {
-                returnBool = RequestBroker.RemoveRequest(guid);
-            }
-            return returnBool;
         }
     }
 }

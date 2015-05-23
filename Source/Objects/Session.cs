@@ -1,20 +1,18 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
-using netSharp.Classes;
-using Stream = netSharp.Classes.Stream;
+using netSharp.Components;
+using netSharp.Events;
 
-namespace netSharp
+namespace netSharp.Objects
 {
     public class Session : IDisposable
     {
         private readonly TcpClient _tcpClient;
         private ASCIIEncoding _asciiEncoding;
+        private Action _messageRecievedCallback;
         private NetworkStream _networkStream;
         private Task _streamReaderThread;
 
@@ -53,24 +51,39 @@ namespace netSharp
                     throw new Exception("Invalid/Unspecified sessionType.");
                 }
             }
-
             LocalEndpointGuid = localGuid;
             RemoteEndpointGuid = "notset";
             Connect();
         }
 
         public bool IsDisposed { get; set; }
-        public int LastTwoWay { get; set; }
         public string RemoteEndpointGuid { get; set; }
         public string LocalEndpointGuid { get; set; }
         public IPEndPoint RemoteEndpointIp { get; set; }
         public string RemoteEndpointIpAddressPort { get; set; }
+        public int LastHello { get; set; }
         public int HelloInterval { get; set; }
 
         public void Dispose()
         {
             Disconnect();
             IsDisposed = true;
+        }
+
+        public event EventHandler<SessionEventArgs> SessionDataRecieved;
+        // Event Handler-Trigger Binding
+        protected virtual void EventInvocationWrapper(SessionEventArgs sessionEventArgs,
+            EventHandler<SessionEventArgs> eventHandler)
+        {
+            if (eventHandler != null)
+            {
+                eventHandler(this, sessionEventArgs);
+            }
+        }
+
+        public void SessionDataRecievedTrigger(DataStream DataStream, Session session)
+        {
+            EventInvocationWrapper(new SessionEventArgs(DataStream, session), SessionDataRecieved);
         }
 
         private void Connect()
@@ -99,6 +112,19 @@ namespace netSharp
             _streamReaderThread.Start();
         }
 
+        public void SendData(DataStream DataStream)
+        {
+            if (DataStream != null)
+            {
+                StreamWriter(DataStream);
+            }
+        }
+
+        public void SendHello()
+        {
+            StreamWriter(Keepalive.CreateHelloStream(LocalEndpointGuid));
+        }
+
         /// <summary>
         ///     Blocks on the NetworkStream of the TcpClient, it recieves data sent across
         ///     the stream and sends it to a parsing function for further processing.
@@ -108,30 +134,47 @@ namespace netSharp
             while (!IsDisposed)
             {
                 if (_networkStream.CanRead)
-                {      
-                    var streamIndex = 10; // Set the stream index to the location of the payload length value in the stream
-                    byte[] payloadLengthBuffer = new byte[2]; // Create a buffer to hold the contents of the payload length value
-                    streamIndex = _networkStream.Read(payloadLengthBuffer,streamIndex, payloadLengthBuffer.Length);
-                                    
-                    byte[] streamBuffer = new byte[StreamEngine.GetPayloadLength(payloadLengthBuffer) + streamIndex]; // Create a buffer to hold the contents of the full stream
+                {
+                    var payloadLengthBuffer = new byte[2];
+                    // Create a buffer to hold the contents of the payload length value
+                    var initialBytesRead = _networkStream.Read(payloadLengthBuffer, 0, payloadLengthBuffer.Length);
 
-                    _networkStream.Seek(0, SeekOrigin.Begin); // Rewind the stream
-                    
-                    streamIndex = 0; // Reset the stream index
+                    var streamBuffer = new byte[StreamEngine.GetPayloadLength(payloadLengthBuffer) + 12];
+                    // Create a buffer to hold the contents of the full DataStream
 
-                    streamIndex = _networkStream.Read(streamBuffer, streamIndex, streamBuffer.Length); 
-                    Stream stream = StreamEngine.ByteArrayToStream(streamBuffer); // Pass the buffer to the deserializer
+                    if (initialBytesRead == 0)
+                        // If the streamIndex remains 0 after the blocking read exits we didn't recieve any data.
+                    {
+                        break;
+                    }
+
+                    _networkStream.Read(streamBuffer, 0, streamBuffer.Length);
+                    // Read the rest of the network stream into the buffer
+                    var dataStream = StreamEngine.ByteArrayToStream(streamBuffer,
+                        StreamEngine.GetPayloadLength(payloadLengthBuffer));
+                    // Pass the buffer to the deserializer and fill the DataStream object.
 
                     _networkStream.Flush();
+
+                    if (RemoteEndpointGuid == "notset")
+                    {
+                        RemoteEndpointGuid = dataStream.Guid;
+                    }
+
+                    SessionDataRecievedTrigger(dataStream, this);
+                    // Pass the DataStream object into the event invocation wrapper and fire the SessionDataRecievedEvent
                 }
-                //to-do: Pass the Stream to the handler
             }
         }
 
-        private void StreamWriter(byte[] byteArray)
+        private void StreamWriter(DataStream DataStream)
         {
-            _networkStream.Write(byteArray, 0, byteArray.Length);
-        }
+            if (_networkStream.CanWrite)
+            {
+                var serializedNspStream = StreamEngine.StreamToByteArray(DataStream);
 
+                _networkStream.Write(serializedNspStream, 0, serializedNspStream.Length);
+            }
+        }
     }
 }

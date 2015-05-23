@@ -39,19 +39,19 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Classes\Stream.cs" />
+    <Compile Include="Objects\DataStream.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Classes\Request.cs" />
-    <Compile Include="Features\RequestBroker.cs" />
-    <Compile Include="Classes\StreamEngine.cs" />
-    <Compile Include="Client.cs" />
-    <Compile Include="Events\EventArgs.cs" />
-    <Compile Include="Experimental\ShortGuid.cs" />
-    <Compile Include="Features\Heartbeat.cs" />
-    <Compile Include="Session.cs" />
-    <Compile Include="Server.cs" />
+    <Compile Include="Components\StreamEngine.cs" />
+    <Compile Include="Objects\Client.cs" />
+    <Compile Include="Events\SessionEventArgs.cs" />
+    <Compile Include="Components\ShortGuid.cs" />
+    <Compile Include="Components\Keepalive.cs" />
+    <Compile Include="Objects\Session.cs" />
+    <Compile Include="Objects\Server.cs" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Folder Include="Experimental\" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

@@ -3,9 +3,9 @@ using netSharp.Events;
 
 namespace Test.Server
 {
-    internal class Program
+    internal class TestServer
     {
-        private netSharp.Server _server;
+        private netSharp.Objects.Server _server;
         private bool IsDisposed;
 
         public void Dispose() //to-do: Call dispose method
@@ -15,40 +15,40 @@ namespace Test.Server
 
         private static void Main(string[] args)
         {
-            var program = new Program();
+            var program = new TestServer();
             program.Initialize();
             program.InputLoop();
         }
 
         private void Initialize()
         {
-            Console.Write("Starting up...\n\n");
+            Console.WriteLine("Starting up...");
             var serverBindAddr = "127.0.0.1";
             var serverBindPort = 3000;
-            _server = new netSharp.Server(serverBindAddr, serverBindPort, 10, 100);
+            _server = new netSharp.Objects.Server(serverBindAddr, serverBindPort, 10, 100);
             _server.ClientCreated += HandleClientCreated;
             _server.ClientRemoved += HandleClientRemoved;
             _server.NewClientRequest += HandleNewClientRequest;
             _server.ListenerPaused += HandleListenerPaused;
-            Console.Write("Started server at {0}\n\n", DateTime.Now);
+            Console.WriteLine("Started server at {0}", DateTime.Now);
         }
 
-        private void HandleClientCreated(object sender, EventDataArgs e)
+        private void HandleClientCreated(object sender, SessionEventArgs e)
         {
             Console.WriteLine("New Client Joined");
         }
 
-        private void HandleClientRemoved(object sender, EventDataArgs e)
+        private void HandleClientRemoved(object sender, SessionEventArgs e)
         {
             Console.WriteLine("Client Removed");
         }
 
-        private void HandleNewClientRequest(object sender, EventDataArgs e)
+        private void HandleNewClientRequest(object sender, SessionEventArgs e)
         {
             Console.WriteLine("New Client Request");
         }
 
-        private void HandleListenerPaused(object sender, EventDataArgs e)
+        private void HandleListenerPaused(object sender, SessionEventArgs e)
         {
             Console.WriteLine("Listener Paused");
         }
@@ -57,7 +57,7 @@ namespace Test.Server
         {
             while (!IsDisposed)
             {
-                Console.Write("Enter a command :");
+                Console.WriteLine("Enter a command :");
                 var readLine = Console.ReadLine(); // Wait for console input.
                 ConsoleCommandProcessor(readLine);
             }
@@ -73,13 +73,13 @@ namespace Test.Server
                 {
                     if (!IsDisposed)
                     {
-                        Console.Write("Listener already started.\n");
+                        Console.WriteLine("Listener already started.");
                     }
 
                     if (IsDisposed)
                     {
                         _server.StartClientSessionFactory();
-                        Console.Write("Listener starting. \n");
+                        Console.WriteLine("Listener starting.");
                     }
 
                     break;
@@ -88,51 +88,51 @@ namespace Test.Server
                 {
                     if (IsDisposed)
                     {
-                        Console.Write("Listener not started.\n");
+                        Console.WriteLine("Listener not started.");
                     }
 
                     if (!IsDisposed)
                     {
                         _server.Dispose();
-                        Console.Write("Listener stopping. \n");
+                        Console.WriteLine("Listener stopping. ");
                     }
                     break;
                 }
                 case "CLIENTS":
                 {
                     //to-do: Show Information on Main
-                    Console.Write("\n{0}/{1} Clients connected\n", _server.SessionList.Count, _server.MaxClientCount);
+                    Console.WriteLine("{0}/{1} Clients connected", _server.SessionList.Count, _server.MaxClientCount);
 
-                    Console.Write("\nClient Name | Last Heard | ToClient Address/Port\n\n");
+                    Console.WriteLine("Client Name | Last Heard | ToClient Address/Port");
 
                     lock (_server.SessionList)
                     {
                         foreach (var session in _server.SessionList)
                         {
-                            Console.Write("{0}         {1}            {2}\n", session.RemoteEndpointGuid,
-                                session.LastTwoWay,
+                            Console.WriteLine("{0}         {1}            {2}", session.RemoteEndpointGuid,
+                                session.LastHello,
                                 session.RemoteEndpointIpAddressPort);
                         }
                     }
 
-                    Console.Write("\n{0}/{1} Clients connected\n", _server.SessionList.Count, _server.MaxClientCount);
+                    Console.WriteLine("{0}/{1} Clients connected", _server.SessionList.Count, _server.MaxClientCount);
 
                     break;
                 }
                 case "BROADCAST":
                 {
-                    Console.Write("Type 'exit' to exit the broadcast loop.\n");
+                    Console.WriteLine("Type 'exit' to exit the broadcast loop.");
                     while (true)
                     {
-                        Console.Write("\nEnter broadcast text : ");
+                        Console.WriteLine("Enter broadcast text : ");
                         var broadcastString = Console.ReadLine();
+
+                        _server.SendData(broadcastString);
 
                         if (broadcastString == "exit")
                         {
                             break;
                         }
-
-                        _server.ClientBroadcast(broadcastString);
                     }
                     break;
                 }
@@ -143,7 +143,7 @@ namespace Test.Server
                 }
                 default:
                 {
-                    Console.Write("Command {0} is invalid.\n", command);
+                    Console.WriteLine("Command {0} is invalid.\n", command);
                     break;
                 }
             }
