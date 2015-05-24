@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Net;
 using netSharp.Events;
 
 namespace Test.Server
@@ -25,32 +26,23 @@ namespace Test.Server
             Console.WriteLine("Starting up...");
             var serverBindAddr = "127.0.0.1";
             var serverBindPort = 3000;
-            _server = new netSharp.Objects.Server(serverBindAddr, serverBindPort, 10, 100);
-            _server.ClientCreated += HandleClientCreated;
-            _server.ClientRemoved += HandleClientRemoved;
-            _server.NewClientRequest += HandleNewClientRequest;
-            _server.ListenerPaused += HandleListenerPaused;
+
+            IPEndPoint serverIpEndPoint = new IPEndPoint(IPAddress.Parse(serverBindAddr), serverBindPort);
+
+            _server = new netSharp.Objects.Server(serverIpEndPoint, 100);
+            _server.SessionCreated += HandleSessionCreated;
+            _server.SessionRemoved += HandleSessionRemoved;
             Console.WriteLine("Started server at {0}", DateTime.Now);
         }
 
-        private void HandleClientCreated(object sender, SessionEventArgs e)
+        private void HandleSessionCreated(object sender, NetSharpEventArgs e)
         {
             Console.WriteLine("New Client Joined");
         }
 
-        private void HandleClientRemoved(object sender, SessionEventArgs e)
+        private void HandleSessionRemoved(object sender, NetSharpEventArgs e)
         {
             Console.WriteLine("Client Removed");
-        }
-
-        private void HandleNewClientRequest(object sender, SessionEventArgs e)
-        {
-            Console.WriteLine("New Client Request");
-        }
-
-        private void HandleListenerPaused(object sender, SessionEventArgs e)
-        {
-            Console.WriteLine("Listener Paused");
         }
 
         private void InputLoop()

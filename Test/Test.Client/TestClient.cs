@@ -27,36 +27,29 @@ namespace Test.Client
             _client = new netSharp.Objects.Client();
             _client.SessionCreated += HandleSessionCreatedEvent;
             _client.SessionRemoved += HandleSessionRemovedEvent;
-            _client.SessionPaused += HandleSessionPausedEvent;
-            _client.ServerDataReturn += HandleServerDataReturn;
-            _client.ServerMessage += HandleServerMessage;
+            _client.ServerDataRecieved += HandleServerDataRecieved;
+            _client.SessionError += HandleSessionErrorEvent;
 
             Console.Write("Started client at {0}\n\n", DateTime.Now);
         }
 
-        private void HandleServerMessage(object sender, SessionEventArgs e)
+        private void HandleServerDataRecieved(object sender, NetSharpEventArgs e)
         {
             Console.WriteLine("New Server Message Recieved");
         }
 
-        private void HandleServerDataReturn(object sender, SessionEventArgs e)
-        {
-            Console.WriteLine("Server Data Returned");
-        }
-
-        private void HandleSessionPausedEvent(object sender, SessionEventArgs e)
-        {
-            Console.WriteLine("Session Paused");
-        }
-
-        private void HandleSessionRemovedEvent(object sender, SessionEventArgs e)
+        private void HandleSessionRemovedEvent(object sender, NetSharpEventArgs e)
         {
             Console.WriteLine("Session Removed");
         }
 
-        private void HandleSessionCreatedEvent(object sender, SessionEventArgs e)
+        private void HandleSessionCreatedEvent(object sender, NetSharpEventArgs e)
         {
             Console.WriteLine("Session Created");
+        }
+
+        private void HandleSessionErrorEvent(object sender, NetSharpEventArgs e)
+        {
         }
 
         private void InputLoop()
@@ -77,12 +70,10 @@ namespace Test.Client
             {
                 case "CONNECT":
                 {
-                    if (_client.SessionList.Count < _client.MaxSessionCount)
-                    {
-                        var remoteIpAddress = IPAddress.Parse("127.0.0.1");
-                        var remotePort = 3000;
-                        _client.NewSession(remoteIpAddress, remotePort);
-                    }
+                    var remoteIpAddress = IPAddress.Parse("127.0.0.1");
+                    var remotePort = 3000;
+                    _client.NewSession(remoteIpAddress, remotePort);
+
                     break;
                 }
                 case "DISCONNECT":
@@ -95,7 +86,7 @@ namespace Test.Client
                 }
                 case "TEST":
                 {
-                    string test = "Hello World!";
+                    var test = "Hello World!";
                     _client.SendData(test);
                     break;
                 }

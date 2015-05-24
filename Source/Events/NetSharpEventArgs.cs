@@ -3,9 +3,9 @@ using netSharp.Objects;
 
 namespace netSharp.Events
 {
-    public class SessionEventArgs
+    public class NetSharpEventArgs
     {
-        public SessionEventArgs(DataStream dataStreamArg = null, Session sessionArg = null)
+        public NetSharpEventArgs(DataStream dataStreamArg = null, Session sessionArg = null, string MessageArg = null)
         {
             if (dataStreamArg  != null)
             {
@@ -14,6 +14,10 @@ namespace netSharp.Events
             if (sessionArg != null)
             {
                 SessionReference = sessionArg;
+            }
+            if (MessageArg != null)
+            {
+                Message = MessageArg;
             }
         }
 

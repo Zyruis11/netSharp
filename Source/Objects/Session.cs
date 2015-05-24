@@ -70,20 +70,26 @@ namespace netSharp.Objects
             IsDisposed = true;
         }
 
-        public event EventHandler<SessionEventArgs> SessionDataRecieved;
+        public event EventHandler<NetSharpEventArgs> SessionDataRecieved;
+        public event EventHandler<NetSharpEventArgs> SessionErrorOccured;
         // Event Handler-Trigger Binding
-        protected virtual void EventInvocationWrapper(SessionEventArgs sessionEventArgs,
-            EventHandler<SessionEventArgs> eventHandler)
+        protected virtual void EventInvocationWrapper(NetSharpEventArgs netSharpEventArgs,
+            EventHandler<NetSharpEventArgs> eventHandler)
         {
             if (eventHandler != null)
             {
-                eventHandler(this, sessionEventArgs);
+                eventHandler(this, netSharpEventArgs);
             }
         }
 
         public void SessionDataRecievedTrigger(DataStream DataStream, Session session)
         {
-            EventInvocationWrapper(new SessionEventArgs(DataStream, session), SessionDataRecieved);
+            EventInvocationWrapper(new NetSharpEventArgs(DataStream, session), SessionDataRecieved);
+        }
+
+        public void SessionErrorOccuredTrigger(string exceptionMessage)
+        {
+            EventInvocationWrapper(new NetSharpEventArgs(null, null, exceptionMessage), SessionErrorOccured);
         }
 
         private void Connect()
@@ -131,39 +137,50 @@ namespace netSharp.Objects
         /// </summary>
         private void StreamReader()
         {
-            while (!IsDisposed)
+            try
             {
-                if (_networkStream.CanRead)
+                while (!IsDisposed)
                 {
-                    var payloadLengthBuffer = new byte[2];
-                    // Create a buffer to hold the contents of the payload length value
-                    var initialBytesRead = _networkStream.Read(payloadLengthBuffer, 0, payloadLengthBuffer.Length);
-
-                    var streamBuffer = new byte[StreamEngine.GetPayloadLength(payloadLengthBuffer) + 12];
-                    // Create a buffer to hold the contents of the full DataStream
-
-                    if (initialBytesRead == 0)
-                        // If the streamIndex remains 0 after the blocking read exits we didn't recieve any data.
+                    if (_networkStream.CanRead)
                     {
-                        break;
+                        var payloadLengthBuffer = new byte[2];
+                        // Create a buffer to hold the contents of the payload length value
+                        var initialBytesRead = _networkStream.Read(payloadLengthBuffer, 0, payloadLengthBuffer.Length);
+
+                        var streamBuffer = new byte[StreamEngine.GetPayloadLength(payloadLengthBuffer) + 12];
+                        // Create a buffer to hold the contents of the full DataStream
+
+                        if (initialBytesRead == 0)
+                            // If the streamIndex remains 0 after the blocking read exits we didn't recieve any data.
+                        {
+                            break;
+                        }
+
+                        _networkStream.Read(streamBuffer, 0, streamBuffer.Length);
+                        // Read the rest of the network stream into the buffer
+                        var dataStream = StreamEngine.ByteArrayToStream(streamBuffer,
+                            StreamEngine.GetPayloadLength(payloadLengthBuffer));
+                        // Pass the buffer to the deserializer and fill the DataStream object.
+
+                        _networkStream.Flush();
+
+                        if (RemoteEndpointGuid == "notset")
+                        {
+                            RemoteEndpointGuid = dataStream.Guid;
+                        }
+
+                        SessionDataRecievedTrigger(dataStream, this);
+                        // Pass the DataStream object into the event invocation wrapper and fire the SessionDataRecievedEvent
                     }
-
-                    _networkStream.Read(streamBuffer, 0, streamBuffer.Length);
-                    // Read the rest of the network stream into the buffer
-                    var dataStream = StreamEngine.ByteArrayToStream(streamBuffer,
-                        StreamEngine.GetPayloadLength(payloadLengthBuffer));
-                    // Pass the buffer to the deserializer and fill the DataStream object.
-
-                    _networkStream.Flush();
-
-                    if (RemoteEndpointGuid == "notset")
-                    {
-                        RemoteEndpointGuid = dataStream.Guid;
-                    }
-
-                    SessionDataRecievedTrigger(dataStream, this);
-                    // Pass the DataStream object into the event invocation wrapper and fire the SessionDataRecievedEvent
                 }
+            }
+            catch (Exception exception)
+            {
+                SessionErrorOccuredTrigger(exception.Message);
+            }
+            finally
+            {
+                _networkStream.Close();
             }
         }
 

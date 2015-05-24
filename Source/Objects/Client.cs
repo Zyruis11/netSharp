@@ -10,74 +10,79 @@ namespace netSharp.Objects
     public class Client : IDisposable
     {
         private readonly Timer _clientTimer;
-        public readonly int MaxSessionCount = 10;
-        public readonly List<Session> SessionList = new List<Session>();
         private bool _isDisposed;
-        public string ClientGuid;
 
         public Client()
         {
             ClientGuid = ShortGuid.NewShortGuid();
+            SessionList = new List<Session>();
+
             _clientTimer = new Timer(1000);
             _clientTimer.Elapsed += ClientTimerTick;
             _clientTimer.Enabled = true;
         }
+
+        public List<Session> SessionList { get; set; }
+        public string ClientGuid { get; set; }
 
         public void Dispose()
         {
             _isDisposed = true;
         }
 
-        public event EventHandler<SessionEventArgs> SessionRemoved;
-        public event EventHandler<SessionEventArgs> SessionCreated;
-        public event EventHandler<SessionEventArgs> SessionPaused;
-        public event EventHandler<SessionEventArgs> ServerDataReturn;
-        public event EventHandler<SessionEventArgs> ServerMessage;
+        public event EventHandler<NetSharpEventArgs> SessionRemoved;
+        public event EventHandler<NetSharpEventArgs> SessionCreated;
+        public event EventHandler<NetSharpEventArgs> SessionError;
+        public event EventHandler<NetSharpEventArgs> ServerDataRecieved;
         // Event Handler-Trigger Binding
-        protected virtual void EventInvocationWrapper(SessionEventArgs sessionEventArgs,
-            EventHandler<SessionEventArgs> eventHandler)
+        protected virtual void EventInvocationWrapper(NetSharpEventArgs netSharpEventArgs,
+            EventHandler<NetSharpEventArgs> eventHandler)
         {
             if (eventHandler != null)
             {
-                eventHandler(this, sessionEventArgs);
+                eventHandler(this, netSharpEventArgs);
             }
         }
 
         public void SessionCreatedTrigger()
         {
-            EventInvocationWrapper(new SessionEventArgs(), SessionCreated);
-        }
-
-        public void SessionPausedTrigger()
-        {
-            EventInvocationWrapper(new SessionEventArgs(), SessionPaused);
+            EventInvocationWrapper(new NetSharpEventArgs(), SessionCreated);
         }
 
         public void SessionRemovedTrigger()
         {
-            EventInvocationWrapper(new SessionEventArgs(), SessionRemoved);
+            EventInvocationWrapper(new NetSharpEventArgs(), SessionRemoved);
         }
 
-        public void RecievedDataTrigger(DataStream dataStream)
+        public void SessionErrorTrigger(string errorMessage)
         {
-            EventInvocationWrapper(new SessionEventArgs(dataStream), ServerMessage);
+            EventInvocationWrapper(new NetSharpEventArgs(null, null, errorMessage), SessionError);
         }
 
-        public void HandleSessionDataRecieved(object sender, SessionEventArgs e)
+        public void ServerDataReceivedTrigger(DataStream dataStream)
+        {
+            EventInvocationWrapper(new NetSharpEventArgs(dataStream), ServerDataRecieved);
+        }
+
+        public void HandleSessionDataRecieved(object sender, NetSharpEventArgs e)
         {
             switch (e.DataStream.PayloadType)
             {
                 case 0: // Hello
-                    {
-                        Keepalive.ProcessRecievedHello(e.SessionReference);
-                        break;
-                    }
+                {
+                    Keepalive.ProcessRecievedHello(e.SessionReference);
+                    break;
+                }
                 case 11: // Application Data
-                    {
-                        RecievedDataTrigger(e.DataStream);
-                        break;
-                    }
+                {
+                    ServerDataReceivedTrigger(e.DataStream);
+                    break;
+                }
             }
+        }
+
+        public void HandleSessionErrorRecieved(object sender, NetSharpEventArgs e)
+        {
         }
 
         public void ClientTimerTick(object source, ElapsedEventArgs eea)
@@ -87,11 +92,11 @@ namespace netSharp.Objects
 
         public void SendData(object payloadObject, string destinationGuid = null)
         {
-            DataStream DataStream = new DataStream(ClientGuid, 11, payloadObject);
+            var DataStream = new DataStream(ClientGuid, 11, payloadObject);
 
             if (destinationGuid != null)
             {
-                foreach (Session session in SessionList)
+                foreach (var session in SessionList)
                 {
                     if (session.RemoteEndpointGuid == destinationGuid)
                     {
@@ -101,14 +106,14 @@ namespace netSharp.Objects
             }
             else
             {
-                foreach (Session session in SessionList)
+                foreach (var session in SessionList)
                 {
                     session.SendData(DataStream);
                 }
             }
         }
 
-    public void NewSession(IPAddress remoteIpAddress, int remotePort)
+        public void NewSession(IPAddress remoteIpAddress, int remotePort)
         {
             var remoteEndpoint = new IPEndPoint(remoteIpAddress, remotePort);
             var session = new Session(1, remoteEndpoint, ClientGuid);
@@ -120,15 +125,10 @@ namespace netSharp.Objects
             if (serverSession == null) throw new ArgumentNullException("serverSession");
             lock (SessionList)
             {
-                if (SessionList.Count < MaxSessionCount)
-                {
-                    SessionList.Add(serverSession);
-                    serverSession.SessionDataRecieved += HandleSessionDataRecieved;
-                    SessionCreatedTrigger();
-                    return;
-                }
+                SessionList.Add(serverSession);
+                serverSession.SessionDataRecieved += HandleSessionDataRecieved;
+                SessionCreatedTrigger();
             }
-            throw new Exception("Unable to create new session");
         }
 
         public void RemoveSession(Session serverSession)
