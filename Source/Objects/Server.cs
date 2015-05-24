@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Management.Instrumentation;
 using System.Net;
 using System.Net.Sockets;
-using System.Threading;
+using System.Threading.Tasks;
 using System.Timers;
 using netSharp.Components;
 using netSharp.Events;
-using Timer = System.Timers.Timer;
 
 namespace netSharp.Objects
 {
@@ -17,11 +17,11 @@ namespace netSharp.Objects
         private readonly Timer _serverTimer;
         private readonly TcpListener _tcpListener;
         private int _clientFactoryExceptionCount;
-        private Thread _clientFactoryThread;
+        private Task _clientFactoryTask;
 
         public Server(IPEndPoint serverIpEndpoint, int maxClientCount)
         {
-            ServerGuid = ShortGuid.NewShortGuid();
+            ServerGuid = ShortGuidGenerator.NewShortGuid();
             SessionList = new List<Session>();
 
             _serverTimer = new Timer(1000);
@@ -37,7 +37,6 @@ namespace netSharp.Objects
         public List<Session> SessionList { get; set; }
         public bool IsDisposed { get; set; }
         public int MaxClientCount { get; set; }
-        public int MaxClientRequests { get; set; }
 
         public void Dispose()
         {
@@ -85,48 +84,48 @@ namespace netSharp.Objects
             {
                 case 0: // Hello
                 {
-                    Keepalive.ProcessRecievedHello(e.SessionReference);
+                    SessionManager.ProcessRecievedHello(e.SessionReference);
                     break;
                 }
                 case 11: // Application Data
                 {
+                    e.SessionReference.IdleTimer = 0;
                     ClientDataReceivedTrigger(e.DataStream);
                     break;
                 }
             }
         }
 
-        private void ServerTimerTick(object source, ElapsedEventArgs eea)
+        public void HandleSessionErrorRecieved(object sender, NetSharpEventArgs e)
         {
-            Keepalive.SessionManager(SessionList);
         }
 
-        public void SendData(object payloadObject, string destinationGuid = null)
+        private void ServerTimerTick(object source, ElapsedEventArgs eea)
+        {
+            SessionManager.SessionStateEngine(SessionList);
+        }
+
+        public void SendData(object payloadObject, string destinationGuid)
         {
             var DataStream = new DataStream(ServerGuid, 11, payloadObject);
 
-            if (destinationGuid != null)
+            if (destinationGuid == null)
             {
-                foreach (var session in SessionList)
-                {
-                    if (session.RemoteEndpointGuid == destinationGuid)
-                    {
-                        session.SendData(DataStream);
-                    }
-                }
+                throw new ArgumentNullException();
             }
-            else
+
+            foreach (var session in SessionList)
             {
-                foreach (var session in SessionList)
+                if (session.RemoteEndpointGuid == destinationGuid)
                 {
                     session.SendData(DataStream);
                 }
             }
         }
 
-        private void SessionFactory()
+        private async void SessionFactory()
         {
-            Thread.Sleep(1000);
+            await Task.Delay(500);
 
             _tcpListener.Start();
 
@@ -138,13 +137,13 @@ namespace netSharp.Objects
                     if (SessionList.Count >= MaxClientCount) throw new Exception("Unable to add client");
                     var clientObject = new Session(0, null, ServerGuid, tcpClient);
                     clientObject.SessionDataRecieved += HandleSessionDataRecieved;
-                    AddClient(clientObject);
+                    AddSession(clientObject);
                 }
                 catch (Exception)
                 {
                     _clientFactoryExceptionCount++;
 
-                    if (_clientFactoryExceptionCount <= 3)
+                    if (_clientFactoryExceptionCount <= 20)
                     {
                         StartClientSessionFactory();
                     }
@@ -157,38 +156,29 @@ namespace netSharp.Objects
             _tcpListener.Stop();
         }
 
-        public void ClientBroadcast(string broadcastString)
-        {
-            //lock (SessionList)
-            //{
-            //    foreach (var client in SessionList)
-            //    {
-            //        client.SendString(broadcastString);
-            //    }
-            //}
-        }
-
         public void StartClientSessionFactory()
         {
-            _clientFactoryThread = new Thread(SessionFactory);
-            _clientFactoryThread.Start();
+            _clientFactoryTask = new Task(SessionFactory);
+            _clientFactoryTask.Start();
         }
 
-        public void AddClient(Session client)
+        public void AddSession(Session client)
         {
+            if (client == null) throw new ArgumentNullException();
             lock (SessionList)
             {
-                if (client == null) throw new Exception("Invalid client specified for addition");
                 SessionList.Add(client);
+                client.SessionDataRecieved += HandleSessionDataRecieved;
                 SessionCreatedTrigger();
             }
         }
 
-        public void RemoveClient(Session client)
+        public void RemoveSession(Session client)
         {
+            if (client == null) throw new ArgumentNullException();
             lock (SessionList)
             {
-                if (!SessionList.Contains(client)) throw new Exception("Invalid client specified for removal");
+                if (!SessionList.Contains(client)) throw new InstanceNotFoundException();
                 SessionList.Remove(client);
                 SessionRemovedTrigger();
             }

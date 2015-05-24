@@ -17,7 +17,7 @@ namespace netSharp.Objects
 
             if (payloadObject != null)
             {
-                PayloadByteArray = StreamEngine.PayloadSerializer(payloadObject);
+                PayloadByteArray = DataStreamFactory.PayloadSerializer(payloadObject);
             }
         }
 
@@ -37,7 +37,7 @@ namespace netSharp.Objects
         {
             if (PayloadByteArray != null)
             {
-                return StreamEngine.PayloadDeserializer(PayloadByteArray);
+                return DataStreamFactory.PayloadDeserializer(PayloadByteArray);
             }
             return null;
         }

@@ -8,7 +8,7 @@ using netSharp.Objects;
 
 namespace netSharp.Components
 {
-    public static class StreamEngine
+    public static class DataStreamFactory
     {
         public static ushort GetPayloadLength(byte[] payloadLengthBytes)
         {

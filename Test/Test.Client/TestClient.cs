@@ -23,14 +23,14 @@ namespace Test.Client
 
         private void Initialize()
         {
-            Console.Write("Starting up...\n\n");
+            Console.WriteLine("Starting up...");
             _client = new netSharp.Objects.Client();
             _client.SessionCreated += HandleSessionCreatedEvent;
             _client.SessionRemoved += HandleSessionRemovedEvent;
             _client.ServerDataRecieved += HandleServerDataRecieved;
             _client.SessionError += HandleSessionErrorEvent;
 
-            Console.Write("Started client at {0}\n\n", DateTime.Now);
+            Console.WriteLine("Started client at {0}", DateTime.Now);
         }
 
         private void HandleServerDataRecieved(object sender, NetSharpEventArgs e)
@@ -72,7 +72,8 @@ namespace Test.Client
                 {
                     var remoteIpAddress = IPAddress.Parse("127.0.0.1");
                     var remotePort = 3000;
-                    _client.NewSession(remoteIpAddress, remotePort);
+                    var remoteIpEndpoint = new IPEndPoint(remoteIpAddress, remotePort);
+                    _client.NewSession(remoteIpEndpoint);
 
                     break;
                 }
@@ -102,7 +103,7 @@ namespace Test.Client
                         foreach (var session in _client.SessionList)
                         {
                             Console.WriteLine("{0}         {1}            {2}", session.RemoteEndpointGuid,
-                                session.LastHello,
+                                session.TimeSinceLastHeartbeatRecieve,
                                 session.RemoteEndpointIpAddressPort);
                         }
                     }

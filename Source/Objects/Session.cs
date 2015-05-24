@@ -53,6 +53,9 @@ namespace netSharp.Objects
             }
             LocalEndpointGuid = localGuid;
             RemoteEndpointGuid = "notset";
+            TimeSinceLastHeartbeatRecieve = 0;
+            TimeUntilNextHeartbeatSend = 0;
+            IdleTimer = 0;
             Connect();
         }
 
@@ -61,8 +64,10 @@ namespace netSharp.Objects
         public string LocalEndpointGuid { get; set; }
         public IPEndPoint RemoteEndpointIp { get; set; }
         public string RemoteEndpointIpAddressPort { get; set; }
-        public int LastHello { get; set; }
-        public int HelloInterval { get; set; }
+        public int TimeSinceLastHeartbeatRecieve { get; set; }
+        public int TimeUntilNextHeartbeatSend { get; set; }
+        public int IdleTimer { get; set; }
+        public byte Cost { get; set; }
 
         public void Dispose()
         {
@@ -126,11 +131,6 @@ namespace netSharp.Objects
             }
         }
 
-        public void SendHello()
-        {
-            StreamWriter(Keepalive.CreateHelloStream(LocalEndpointGuid));
-        }
-
         /// <summary>
         ///     Blocks on the NetworkStream of the TcpClient, it recieves data sent across
         ///     the stream and sends it to a parsing function for further processing.
@@ -147,7 +147,7 @@ namespace netSharp.Objects
                         // Create a buffer to hold the contents of the payload length value
                         var initialBytesRead = _networkStream.Read(payloadLengthBuffer, 0, payloadLengthBuffer.Length);
 
-                        var streamBuffer = new byte[StreamEngine.GetPayloadLength(payloadLengthBuffer) + 12];
+                        var streamBuffer = new byte[DataStreamFactory.GetPayloadLength(payloadLengthBuffer) + 12];
                         // Create a buffer to hold the contents of the full DataStream
 
                         if (initialBytesRead == 0)
@@ -158,8 +158,8 @@ namespace netSharp.Objects
 
                         _networkStream.Read(streamBuffer, 0, streamBuffer.Length);
                         // Read the rest of the network stream into the buffer
-                        var dataStream = StreamEngine.ByteArrayToStream(streamBuffer,
-                            StreamEngine.GetPayloadLength(payloadLengthBuffer));
+                        var dataStream = DataStreamFactory.ByteArrayToStream(streamBuffer,
+                            DataStreamFactory.GetPayloadLength(payloadLengthBuffer));
                         // Pass the buffer to the deserializer and fill the DataStream object.
 
                         _networkStream.Flush();
@@ -188,7 +188,7 @@ namespace netSharp.Objects
         {
             if (_networkStream.CanWrite)
             {
-                var serializedNspStream = StreamEngine.StreamToByteArray(DataStream);
+                var serializedNspStream = DataStreamFactory.StreamToByteArray(DataStream);
 
                 _networkStream.Write(serializedNspStream, 0, serializedNspStream.Length);
             }

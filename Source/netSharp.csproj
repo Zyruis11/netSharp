@@ -59,11 +59,11 @@
   <ItemGroup>
     <Compile Include="Objects\DataStream.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Components\StreamEngine.cs" />
+    <Compile Include="Components\DataStreamFactory.cs" />
     <Compile Include="Objects\Client.cs" />
     <Compile Include="Events\NetSharpEventArgs.cs" />
-    <Compile Include="Components\ShortGuid.cs" />
-    <Compile Include="Components\Keepalive.cs" />
+    <Compile Include="Components\ShortGuidGenerator.cs" />
+    <Compile Include="Components\SessionManager.cs" />
     <Compile Include="Objects\Session.cs" />
     <Compile Include="Objects\Server.cs" />
   </ItemGroup>

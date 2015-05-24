@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Management.Instrumentation;
 using System.Net;
 using System.Timers;
 using netSharp.Components;
@@ -14,7 +15,7 @@ namespace netSharp.Objects
 
         public Client()
         {
-            ClientGuid = ShortGuid.NewShortGuid();
+            ClientGuid = ShortGuidGenerator.NewShortGuid();
             SessionList = new List<Session>();
 
             _clientTimer = new Timer(1000);
@@ -70,11 +71,12 @@ namespace netSharp.Objects
             {
                 case 0: // Hello
                 {
-                    Keepalive.ProcessRecievedHello(e.SessionReference);
+                    SessionManager.ProcessRecievedHello(e.SessionReference);
                     break;
                 }
                 case 11: // Application Data
                 {
+                    e.SessionReference.IdleTimer = 0;
                     ServerDataReceivedTrigger(e.DataStream);
                     break;
                 }
@@ -87,14 +89,14 @@ namespace netSharp.Objects
 
         public void ClientTimerTick(object source, ElapsedEventArgs eea)
         {
-            Keepalive.SessionManager(SessionList);
+            SessionManager.SessionStateEngine(SessionList);
         }
 
         public void SendData(object payloadObject, string destinationGuid = null)
         {
             var DataStream = new DataStream(ClientGuid, 11, payloadObject);
 
-            if (destinationGuid != null)
+            if (destinationGuid != null) // If this is a sticky request i.e. a request intended for one server.
             {
                 foreach (var session in SessionList)
                 {
@@ -104,25 +106,35 @@ namespace netSharp.Objects
                     }
                 }
             }
-            else
+
+            var BestCost = byte.MaxValue;
+            Session BestCostSession = null;
+
+            foreach (var session in SessionList)
             {
-                foreach (var session in SessionList)
+                if (session.Cost < BestCost)
                 {
-                    session.SendData(DataStream);
+                    BestCost = session.Cost;
+                    BestCostSession = session;
                 }
             }
+            if (BestCostSession == null)
+            {
+                return;
+            }
+
+            BestCostSession.SendData(DataStream);
         }
 
-        public void NewSession(IPAddress remoteIpAddress, int remotePort)
+        public void NewSession(IPEndPoint remoteIpEndpoint)
         {
-            var remoteEndpoint = new IPEndPoint(remoteIpAddress, remotePort);
-            var session = new Session(1, remoteEndpoint, ClientGuid);
+            var session = new Session(1, remoteIpEndpoint, ClientGuid);
             AddSession(session);
         }
 
         public void AddSession(Session serverSession)
         {
-            if (serverSession == null) throw new ArgumentNullException("serverSession");
+            if (serverSession == null) throw new ArgumentNullException();
             lock (SessionList)
             {
                 SessionList.Add(serverSession);
@@ -136,14 +148,10 @@ namespace netSharp.Objects
             if (serverSession == null) throw new ArgumentNullException("serverSession");
             lock (SessionList)
             {
-                if (SessionList.Contains(serverSession))
-                {
-                    SessionList.Remove(serverSession);
-                    SessionRemovedTrigger();
-                    return;
-                }
+                if (!SessionList.Contains(serverSession)) throw new InstanceNotFoundException();
+                SessionList.Remove(serverSession);
+                SessionRemovedTrigger();
             }
-            throw new Exception("Unable to remove session");
         }
     }
 }

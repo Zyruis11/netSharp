@@ -102,7 +102,7 @@ namespace Test.Server
                         foreach (var session in _server.SessionList)
                         {
                             Console.WriteLine("{0}         {1}            {2}", session.RemoteEndpointGuid,
-                                session.LastHello,
+                                session.TimeSinceLastHeartbeatRecieve,
                                 session.RemoteEndpointIpAddressPort);
                         }
                     }

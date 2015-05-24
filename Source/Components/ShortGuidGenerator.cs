@@ -3,7 +3,7 @@ using System.Text;
 
 namespace netSharp.Components
 {
-    public static class ShortGuid
+    public static class ShortGuidGenerator
     {
         public static string NewShortGuid()
         {
