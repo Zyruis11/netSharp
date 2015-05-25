@@ -18,7 +18,7 @@ namespace netSharp.Objects
             ClientGuid = ShortGuidGenerator.NewShortGuid();
             SessionList = new List<Session>();
 
-            _clientTimer = new Timer(1000);
+            _clientTimer = new Timer(10000);
             _clientTimer.Elapsed += ClientTimerTick;
             _clientTimer.Enabled = true;
         }
@@ -76,7 +76,7 @@ namespace netSharp.Objects
                 }
                 case 11: // Application Data
                 {
-                    e.SessionReference.IdleTimer = 0;
+                    e.SessionReference.IdleTime = 0;
                     ServerDataReceivedTrigger(e.DataStream);
                     break;
                 }
@@ -96,15 +96,25 @@ namespace netSharp.Objects
         {
             var DataStream = new DataStream(ClientGuid, 11, payloadObject);
 
-            if (destinationGuid != null) // If this is a sticky request i.e. a request intended for one server.
+            //if (destinationGuid != "") // If this is a sticky request i.e. a request intended for one server.
+            //{
+            //    foreach (var session in SessionList)
+            //    {
+            //        if (session.RemoteEndpointGuid == destinationGuid)
+            //        {
+            //            session.SendData(DataStream);
+            //        }
+            //    }
+            //    return;
+            //}
+
+            if (destinationGuid == "AAAAA")
             {
                 foreach (var session in SessionList)
                 {
-                    if (session.RemoteEndpointGuid == destinationGuid)
-                    {
-                        session.SendData(DataStream);
-                    }
+                    session.SendData(DataStream);
                 }
+                return;
             }
 
             var BestCost = byte.MaxValue;

@@ -89,7 +89,7 @@ namespace netSharp.Objects
                 }
                 case 11: // Application Data
                 {
-                    e.SessionReference.IdleTimer = 0;
+                    e.SessionReference.IdleTime = 0;
                     ClientDataReceivedTrigger(e.DataStream);
                     break;
                 }
@@ -102,10 +102,10 @@ namespace netSharp.Objects
 
         private void ServerTimerTick(object source, ElapsedEventArgs eea)
         {
-            SessionManager.SessionStateEngine(SessionList);
+            SessionManager.SessionStateEngine(SessionList, MaxClientCount);
         }
 
-        public void SendData(object payloadObject, string destinationGuid)
+        public void SendData(object payloadObject, string destinationGuid = "")
         {
             var DataStream = new DataStream(ServerGuid, 11, payloadObject);
 
@@ -143,7 +143,7 @@ namespace netSharp.Objects
                 {
                     _clientFactoryExceptionCount++;
 
-                    if (_clientFactoryExceptionCount <= 20)
+                    if (_clientFactoryExceptionCount <= 5000)
                     {
                         StartClientSessionFactory();
                     }

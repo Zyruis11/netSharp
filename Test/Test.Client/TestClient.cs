@@ -70,11 +70,13 @@ namespace Test.Client
             {
                 case "CONNECT":
                 {
-                    var remoteIpAddress = IPAddress.Parse("127.0.0.1");
-                    var remotePort = 3000;
-                    var remoteIpEndpoint = new IPEndPoint(remoteIpAddress, remotePort);
-                    _client.NewSession(remoteIpEndpoint);
-
+                    for(int i = 0; i < 100; i++)
+                    {
+                        var remoteIpAddress = IPAddress.Parse("127.0.0.1");
+                        var remotePort = 3000;
+                        var remoteIpEndpoint = new IPEndPoint(remoteIpAddress, remotePort);
+                        _client.NewSession(remoteIpEndpoint);
+                    }
                     break;
                 }
                 case "DISCONNECT":
@@ -88,7 +90,7 @@ namespace Test.Client
                 case "TEST":
                 {
                     var test = "Hello World!";
-                    _client.SendData(test);
+                    _client.SendData(test, "AAAAA");
                     break;
                 }
                 case "CLIENTS":

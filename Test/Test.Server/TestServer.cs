@@ -29,9 +29,10 @@ namespace Test.Server
 
             IPEndPoint serverIpEndPoint = new IPEndPoint(IPAddress.Parse(serverBindAddr), serverBindPort);
 
-            _server = new netSharp.Objects.Server(serverIpEndPoint, 100);
+            _server = new netSharp.Objects.Server(serverIpEndPoint, 10000);
             _server.SessionCreated += HandleSessionCreated;
             _server.SessionRemoved += HandleSessionRemoved;
+            _server.ClientDataReceived += HandleClientData;
             Console.WriteLine("Started server at {0}", DateTime.Now);
         }
 
@@ -43,6 +44,11 @@ namespace Test.Server
         private void HandleSessionRemoved(object sender, NetSharpEventArgs e)
         {
             Console.WriteLine("Client Removed");
+        }
+
+        private void HandleClientData(object sender, NetSharpEventArgs e)
+        {
+            Console.Write("!");    
         }
 
         private void InputLoop()
@@ -95,20 +101,19 @@ namespace Test.Server
                     //to-do: Show Information on Main
                     Console.WriteLine("{0}/{1} Clients connected", _server.SessionList.Count, _server.MaxClientCount);
 
-                    Console.WriteLine("Client Name | Last Heard | ToClient Address/Port");
+                    Console.WriteLine("Client GUID | Use Heartbeat? - Idle Time/Max Idle Time | ToClient Address/Port");
 
                     lock (_server.SessionList)
                     {
                         foreach (var session in _server.SessionList)
                         {
-                            Console.WriteLine("{0}         {1}            {2}", session.RemoteEndpointGuid,
-                                session.TimeSinceLastHeartbeatRecieve,
+                            Console.WriteLine("{0}          {1} - {2}/{3}                           {4}", session.RemoteEndpointGuid,
+                                session.UseHeartbeat, session.IdleTime, session.MaxIdleTime,
                                 session.RemoteEndpointIpAddressPort);
                         }
                     }
 
                     Console.WriteLine("{0}/{1} Clients connected", _server.SessionList.Count, _server.MaxClientCount);
-
                     break;
                 }
                 case "BROADCAST":

@@ -9,7 +9,7 @@ namespace netSharp.Components
         {
             int guidLength = 4;
 
-            string charString = "abcdefghijklmnopqrstuvwxyz0123456789";
+            string charString = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 
             StringBuilder builder = new StringBuilder();
             char @char;
