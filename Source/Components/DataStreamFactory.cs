@@ -10,13 +10,13 @@ namespace netSharp.Components
 {
     public static class DataStreamFactory
     {
-        public static ushort GetPayloadLength(byte[] payloadLengthBytes)
+        public static int GetPayloadLength(byte[] payloadLengthBytes)
         {
-            if (payloadLengthBytes.Length != 2)
+            if (payloadLengthBytes.Length != 4)
             {
                 throw new Exception("Invalid input byte array length");
             }
-            return BitConverter.ToUInt16(payloadLengthBytes,0);
+            return BitConverter.ToInt32(payloadLengthBytes,0);
         }
 
         public static byte[] StreamToByteArray(DataStream DataStream)
@@ -24,7 +24,7 @@ namespace netSharp.Components
             var byteArrayList = new List<byte[]>();
             var futureUsePadding = new byte[4];
 
-            byteArrayList.Add(BitConverter.GetBytes(Convert.ToUInt16(DataStream.PayloadByteArray.Length))); // Add payloadLength to list
+            byteArrayList.Add(BitConverter.GetBytes(Convert.ToInt32(DataStream.PayloadByteArray.Length))); // Add payloadLength to list
             byteArrayList.Add(Encoding.Default.GetBytes(DataStream.Guid)); // Add GUID to list
             byteArrayList.Add(futureUsePadding); // Add 4-byte future use padding to list
             byteArrayList.Add(BitConverter.GetBytes(DataStream.PayloadType)); // Add payloadType to list

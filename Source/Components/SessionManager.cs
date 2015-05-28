@@ -29,10 +29,10 @@ namespace netSharp.Components
                         continue;
                     }
 
-                    if (!session.SentGuid)
-                    {
-                        sessionsToInitialize.Add(session);
-                    }
+                    //if (!session.SentGuid)
+                    //{
+                    //    sessionsToInitialize.Add(session);
+                    //}
 
                     if (!session.UseHeartbeat)
                     {

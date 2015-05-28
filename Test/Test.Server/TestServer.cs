@@ -26,13 +26,12 @@ namespace Test.Server
             Console.WriteLine("Starting up...");
             var serverBindAddr = "127.0.0.1";
             var serverBindPort = 3000;
-
             IPEndPoint serverIpEndPoint = new IPEndPoint(IPAddress.Parse(serverBindAddr), serverBindPort);
-
-            _server = new netSharp.Objects.Server(serverIpEndPoint, 10000);
+            System.Threading.Thread.Sleep(5000); // Debug build only, prevents deadlocking 
+            _server = new netSharp.Objects.Server(serverIpEndPoint, 100);
             _server.SessionCreated += HandleSessionCreated;
             _server.SessionRemoved += HandleSessionRemoved;
-            _server.ClientDataReceived += HandleClientData;
+            _server.ClientDataReceived += HandleSessionDataReceived;
             Console.WriteLine("Started server at {0}", DateTime.Now);
         }
 
@@ -46,9 +45,9 @@ namespace Test.Server
             Console.WriteLine("Client Removed");
         }
 
-        private void HandleClientData(object sender, NetSharpEventArgs e)
+        private void HandleSessionDataReceived(object sender, NetSharpEventArgs e)
         {
-            Console.Write("!");    
+            Console.WriteLine("!");
         }
 
         private void InputLoop()

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Net;
 using netSharp.Events;
 
@@ -24,6 +25,7 @@ namespace Test.Client
         private void Initialize()
         {
             Console.WriteLine("Starting up...");
+            System.Threading.Thread.Sleep(2500); // Debug build only, prevents deadlocking
             _client = new netSharp.Objects.Client();
             _client.SessionCreated += HandleSessionCreatedEvent;
             _client.SessionRemoved += HandleSessionRemovedEvent;
@@ -70,13 +72,11 @@ namespace Test.Client
             {
                 case "CONNECT":
                 {
-                    for(int i = 0; i < 100; i++)
-                    {
-                        var remoteIpAddress = IPAddress.Parse("127.0.0.1");
-                        var remotePort = 3000;
-                        var remoteIpEndpoint = new IPEndPoint(remoteIpAddress, remotePort);
-                        _client.NewSession(remoteIpEndpoint);
-                    }
+                    var remoteIpAddress = IPAddress.Parse("127.0.0.1");
+                    var remotePort = 3000;
+                    var remoteIpEndpoint = new IPEndPoint(remoteIpAddress, remotePort);
+                    _client.NewSession(remoteIpEndpoint);
+
                     break;
                 }
                 case "DISCONNECT":
@@ -89,8 +89,14 @@ namespace Test.Client
                 }
                 case "TEST":
                 {
-                    var test = "Hello World!";
-                    _client.SendData(test, "AAAAA");
+                    Stopwatch stopwatch = new Stopwatch();
+                    stopwatch.Start();
+                    var test = new byte[100000];
+                     _client.SendData(test, "ALLSERVERS");
+                    stopwatch.Stop();
+                    TimeSpan ts = stopwatch.Elapsed;
+
+                    Console.WriteLine("{0} ms", ts.TotalMilliseconds);
                     break;
                 }
                 case "CLIENTS":

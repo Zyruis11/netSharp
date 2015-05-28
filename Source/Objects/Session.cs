@@ -154,11 +154,13 @@ namespace netSharp.Objects
                 {
                     if (_networkStream.CanRead)
                     {
-                        var payloadLengthBuffer = new byte[2];
+                        var payloadLengthBuffer = new byte[4];
                         // Create a buffer to hold the contents of the payload length value
                         var initialBytesRead = _networkStream.Read(payloadLengthBuffer, 0, payloadLengthBuffer.Length);
 
-                        var streamBuffer = new byte[DataStreamFactory.GetPayloadLength(payloadLengthBuffer) + 12];
+                        var payloadLength = DataStreamFactory.GetPayloadLength(payloadLengthBuffer);
+
+                        var streamBuffer = new byte[payloadLength + 14];
                         // Create a buffer to hold the contents of the full DataStream
 
                         if (initialBytesRead == 0)
@@ -168,9 +170,9 @@ namespace netSharp.Objects
                         }
 
                         _networkStream.Read(streamBuffer, 0, streamBuffer.Length);
+
                         // Read the rest of the network stream into the buffer
-                        var dataStream = DataStreamFactory.ByteArrayToStream(streamBuffer,
-                            DataStreamFactory.GetPayloadLength(payloadLengthBuffer));
+                        var dataStream = DataStreamFactory.ByteArrayToStream(streamBuffer, payloadLength);
                         // Pass the buffer to the deserializer and fill the DataStream object.
 
                         _networkStream.Flush();
@@ -197,12 +199,8 @@ namespace netSharp.Objects
 
         private void StreamWriter(DataStream DataStream)
         {
-            if (_networkStream.CanWrite)
-            {
                 var serializedDataStream = DataStreamFactory.StreamToByteArray(DataStream);
-
-                _networkStream.Write(serializedDataStream, 0, serializedDataStream.Length);
-            }
+                _networkStream.Write(serializedDataStream, 0, serializedDataStream.Length);   
         }
     }
 }

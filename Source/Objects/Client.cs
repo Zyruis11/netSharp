@@ -96,25 +96,24 @@ namespace netSharp.Objects
         {
             var DataStream = new DataStream(ClientGuid, 11, payloadObject);
 
-            //if (destinationGuid != "") // If this is a sticky request i.e. a request intended for one server.
-            //{
-            //    foreach (var session in SessionList)
-            //    {
-            //        if (session.RemoteEndpointGuid == destinationGuid)
-            //        {
-            //            session.SendData(DataStream);
-            //        }
-            //    }
-            //    return;
-            //}
+            if (destinationGuid.Length == 4) // If this is a sticky request i.e. a request intended for one server.
+            {
+                foreach (var session in SessionList)
+                {
+                    if (session.RemoteEndpointGuid == destinationGuid)
+                    {
+                        session.SendData(DataStream);
+                    }
+                }
+                return;
+            }
 
-            if (destinationGuid == "AAAAA")
+            if (destinationGuid == "ALLSERVERS")
             {
                 foreach (var session in SessionList)
                 {
                     session.SendData(DataStream);
                 }
-                return;
             }
 
             var BestCost = byte.MaxValue;

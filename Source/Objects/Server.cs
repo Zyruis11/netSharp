@@ -80,6 +80,8 @@ namespace netSharp.Objects
 
         public void HandleSessionDataRecieved(object sender, NetSharpEventArgs e)
         {
+            e.SessionReference.IdleTime = 0;
+
             switch (e.DataStream.PayloadType)
             {
                 case 0: // Hello
@@ -89,7 +91,6 @@ namespace netSharp.Objects
                 }
                 case 11: // Application Data
                 {
-                    e.SessionReference.IdleTime = 0;
                     ClientDataReceivedTrigger(e.DataStream);
                     break;
                 }
@@ -134,7 +135,7 @@ namespace netSharp.Objects
                 try
                 {
                     var tcpClient = _tcpListener.AcceptTcpClient();
-                    if (SessionList.Count >= MaxClientCount) throw new Exception("Unable to add client");
+                    if (SessionList.Count >= MaxClientCount) throw new Exception("Unable to add session");
                     var clientObject = new Session(0, null, ServerGuid, tcpClient);
                     clientObject.SessionDataRecieved += HandleSessionDataRecieved;
                     AddSession(clientObject);
@@ -162,13 +163,13 @@ namespace netSharp.Objects
             _clientFactoryTask.Start();
         }
 
-        public void AddSession(Session client)
+        public void AddSession(Session session)
         {
-            if (client == null) throw new ArgumentNullException();
+            if (session == null) throw new ArgumentNullException();
             lock (SessionList)
             {
-                SessionList.Add(client);
-                client.SessionDataRecieved += HandleSessionDataRecieved;
+                SessionList.Add(session);
+                session.SessionDataRecieved += HandleSessionDataRecieved;
                 SessionCreatedTrigger();
             }
         }
