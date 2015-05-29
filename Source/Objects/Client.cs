@@ -92,7 +92,7 @@ namespace netSharp.Objects
             SessionManager.SessionStateEngine(SessionList);
         }
 
-        public void SendData(object payloadObject, string destinationGuid = null)
+        public void SendData(byte[] payloadObject, string destinationGuid = null)
         {
             var DataStream = new DataStream(ClientGuid, 11, payloadObject);
 
@@ -115,24 +115,6 @@ namespace netSharp.Objects
                     session.SendData(DataStream);
                 }
             }
-
-            var BestCost = byte.MaxValue;
-            Session BestCostSession = null;
-
-            foreach (var session in SessionList)
-            {
-                if (session.Cost < BestCost)
-                {
-                    BestCost = session.Cost;
-                    BestCostSession = session;
-                }
-            }
-            if (BestCostSession == null)
-            {
-                return;
-            }
-
-            BestCostSession.SendData(DataStream);
         }
 
         public void NewSession(IPEndPoint remoteIpEndpoint)

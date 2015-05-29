@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Net;
+using System.Text;
 using netSharp.Events;
 
 namespace Test.Server
@@ -24,11 +25,10 @@ namespace Test.Server
         private void Initialize()
         {
             Console.WriteLine("Starting up...");
-            var serverBindAddr = "127.0.0.1";
+            var serverBindAddr = "10.0.0.2";
             var serverBindPort = 3000;
-            IPEndPoint serverIpEndPoint = new IPEndPoint(IPAddress.Parse(serverBindAddr), serverBindPort);
-            System.Threading.Thread.Sleep(5000); // Debug build only, prevents deadlocking 
-            _server = new netSharp.Objects.Server(serverIpEndPoint, 100);
+            var serverIpEndPoint = new IPEndPoint(IPAddress.Parse(serverBindAddr), serverBindPort);
+            _server = new netSharp.Objects.Server(serverIpEndPoint, 10000);
             _server.SessionCreated += HandleSessionCreated;
             _server.SessionRemoved += HandleSessionRemoved;
             _server.ClientDataReceived += HandleSessionDataReceived;
@@ -47,7 +47,8 @@ namespace Test.Server
 
         private void HandleSessionDataReceived(object sender, NetSharpEventArgs e)
         {
-            Console.WriteLine("!");
+            //var str = Encoding.Default.GetString(e.DataStream.PayloadByteArray);
+            Console.WriteLine("Recieved Data " + e.DataStream.PayloadByteArray.Length);
         }
 
         private void InputLoop()
@@ -66,35 +67,6 @@ namespace Test.Server
 
             switch (commandToUpper)
             {
-                case "LISTEN":
-                {
-                    if (!IsDisposed)
-                    {
-                        Console.WriteLine("Listener already started.");
-                    }
-
-                    if (IsDisposed)
-                    {
-                        _server.StartClientSessionFactory();
-                        Console.WriteLine("Listener starting.");
-                    }
-
-                    break;
-                }
-                case "NO LISTEN":
-                {
-                    if (IsDisposed)
-                    {
-                        Console.WriteLine("Listener not started.");
-                    }
-
-                    if (!IsDisposed)
-                    {
-                        _server.Dispose();
-                        Console.WriteLine("Listener stopping. ");
-                    }
-                    break;
-                }
                 case "CLIENTS":
                 {
                     //to-do: Show Information on Main
@@ -106,30 +78,14 @@ namespace Test.Server
                     {
                         foreach (var session in _server.SessionList)
                         {
-                            Console.WriteLine("{0}          {1} - {2}/{3}                           {4}", session.RemoteEndpointGuid,
+                            Console.WriteLine("{0}          {1} - {2}/{3}                           {4}",
+                                session.RemoteEndpointGuid,
                                 session.UseHeartbeat, session.IdleTime, session.MaxIdleTime,
                                 session.RemoteEndpointIpAddressPort);
                         }
                     }
 
                     Console.WriteLine("{0}/{1} Clients connected", _server.SessionList.Count, _server.MaxClientCount);
-                    break;
-                }
-                case "BROADCAST":
-                {
-                    Console.WriteLine("Type 'exit' to exit the broadcast loop.");
-                    while (true)
-                    {
-                        Console.WriteLine("Enter broadcast text : ");
-                        var broadcastString = Console.ReadLine();
-
-                        _server.SendData(broadcastString);
-
-                        if (broadcastString == "exit")
-                        {
-                            break;
-                        }
-                    }
                     break;
                 }
                 case "CLEAR":

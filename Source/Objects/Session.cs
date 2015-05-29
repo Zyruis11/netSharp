@@ -2,7 +2,6 @@
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
-using System.Threading.Tasks;
 using netSharp.Components;
 using netSharp.Events;
 
@@ -14,7 +13,6 @@ namespace netSharp.Objects
         private ASCIIEncoding _asciiEncoding;
         private Action _messageRecievedCallback;
         private NetworkStream _networkStream;
-        private Task _streamReaderThread;
 
         /// <summary>
         /// </summary>
@@ -116,7 +114,7 @@ namespace netSharp.Objects
                 RemoteEndpointIpAddressPort = _tcpClient.Client.RemoteEndPoint.ToString();
             }
             _networkStream = _tcpClient.GetStream();
-            StartStreamReaderTask();
+            AsyncStreamReader();
         }
 
         public void Disconnect()
@@ -128,17 +126,11 @@ namespace netSharp.Objects
             }
         }
 
-        public void StartStreamReaderTask()
-        {
-            _streamReaderThread = new Task(StreamReader);
-            _streamReaderThread.Start();
-        }
-
         public void SendData(DataStream DataStream)
         {
             if (DataStream != null)
             {
-                StreamWriter(DataStream);
+                AsyncStreamWriter(DataStream);
             }
         }
 
@@ -146,61 +138,51 @@ namespace netSharp.Objects
         ///     Blocks on the NetworkStream of the TcpClient, it recieves data sent across
         ///     the stream and sends it to a parsing function for further processing.
         /// </summary>
-        private void StreamReader()
+        private async void AsyncStreamReader()
         {
-            try
+            while (!IsDisposed)
             {
-                while (!IsDisposed)
+                if (_networkStream.CanRead)
                 {
-                    if (_networkStream.CanRead)
+                    var protocolInfoBuffer = new byte[10];
+                    var initialBytesRead =
+                        await _networkStream.ReadAsync(protocolInfoBuffer, 0, protocolInfoBuffer.Length);
+                    var dataStream = DataStreamFactory.InitializeStreamObject(protocolInfoBuffer);
+
+                    if (initialBytesRead == 0)
                     {
-                        var payloadLengthBuffer = new byte[4];
-                        // Create a buffer to hold the contents of the payload length value
-                        var initialBytesRead = _networkStream.Read(payloadLengthBuffer, 0, payloadLengthBuffer.Length);
+                        break;
+                    }
 
-                        var payloadLength = DataStreamFactory.GetPayloadLength(payloadLengthBuffer);
+                    var payloadBytesRead = 0;
+                    
+                    dataStream.PayloadByteArray = new byte[dataStream.PayloadLength];
+                  
+                    while (payloadBytesRead < dataStream.PayloadLength)
+                    {
+                        payloadBytesRead +=
+                       await
+                           _networkStream.ReadAsync(
+                               dataStream.PayloadByteArray, 0,
+                               dataStream.PayloadLength);
+                    }         
 
-                        var streamBuffer = new byte[payloadLength + 14];
-                        // Create a buffer to hold the contents of the full DataStream
+                    SessionDataRecievedTrigger(dataStream, this);
 
-                        if (initialBytesRead == 0)
-                            // If the streamIndex remains 0 after the blocking read exits we didn't recieve any data.
-                        {
-                            break;
-                        }
-
-                        _networkStream.Read(streamBuffer, 0, streamBuffer.Length);
-
-                        // Read the rest of the network stream into the buffer
-                        var dataStream = DataStreamFactory.ByteArrayToStream(streamBuffer, payloadLength);
-                        // Pass the buffer to the deserializer and fill the DataStream object.
-
-                        _networkStream.Flush();
-
-                        if (RemoteEndpointGuid == "notset")
-                        {
-                            RemoteEndpointGuid = dataStream.Guid;
-                        }
-
-                        SessionDataRecievedTrigger(dataStream, this);
-                        // Pass the DataStream object into the event invocation wrapper and fire the SessionDataRecievedEvent
+                    if (RemoteEndpointGuid == "notset")
+                    {
+                        RemoteEndpointGuid = dataStream.Guid;
                     }
                 }
             }
-            catch (Exception exception)
-            {
-                SessionErrorOccuredTrigger(exception.Message);
-            }
-            finally
-            {
-                _networkStream.Close();
-            }
+
+            _networkStream.Close();
         }
 
-        private void StreamWriter(DataStream DataStream)
+        private async void AsyncStreamWriter(DataStream DataStream)
         {
-                var serializedDataStream = DataStreamFactory.StreamToByteArray(DataStream);
-                _networkStream.Write(serializedDataStream, 0, serializedDataStream.Length);   
+            var serializedDataStream = DataStreamFactory.GetStreamByteArray(DataStream);          
+            await _networkStream.WriteAsync(serializedDataStream, 0, serializedDataStream.Length);
         }
     }
 }

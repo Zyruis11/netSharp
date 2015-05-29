@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Management.Instrumentation;
 using System.Net;
 using System.Net.Sockets;
@@ -17,7 +18,6 @@ namespace netSharp.Objects
         private readonly Timer _serverTimer;
         private readonly TcpListener _tcpListener;
         private int _clientFactoryExceptionCount;
-        private Task _clientFactoryTask;
 
         public Server(IPEndPoint serverIpEndpoint, int maxClientCount)
         {
@@ -106,7 +106,7 @@ namespace netSharp.Objects
             SessionManager.SessionStateEngine(SessionList, MaxClientCount);
         }
 
-        public void SendData(object payloadObject, string destinationGuid = "")
+        public void SendData(byte[] payloadObject, string destinationGuid = "")
         {
             var DataStream = new DataStream(ServerGuid, 11, payloadObject);
 
@@ -126,41 +126,21 @@ namespace netSharp.Objects
 
         private async void SessionFactory()
         {
-            await Task.Delay(500);
-
             _tcpListener.Start();
 
             while (!IsDisposed)
             {
-                try
-                {
-                    var tcpClient = _tcpListener.AcceptTcpClient();
-                    if (SessionList.Count >= MaxClientCount) throw new Exception("Unable to add session");
-                    var clientObject = new Session(0, null, ServerGuid, tcpClient);
-                    clientObject.SessionDataRecieved += HandleSessionDataRecieved;
-                    AddSession(clientObject);
-                }
-                catch (Exception)
-                {
-                    _clientFactoryExceptionCount++;
-
-                    if (_clientFactoryExceptionCount <= 5000)
-                    {
-                        StartClientSessionFactory();
-                    }
-                    else
-                    {
-                        throw new Exception("Client Factory exceeded failure threshold.");
-                    }
-                }
+                var tcpClient = await _tcpListener.AcceptTcpClientAsync();
+                if (SessionList.Count >= MaxClientCount) throw new Exception("Unable to add session");
+                var clientObject = new Session(0, null, ServerGuid, tcpClient);
+                AddSession(clientObject);
             }
             _tcpListener.Stop();
         }
 
         public void StartClientSessionFactory()
         {
-            _clientFactoryTask = new Task(SessionFactory);
-            _clientFactoryTask.Start();
+            SessionFactory();
         }
 
         public void AddSession(Session session)
@@ -168,19 +148,21 @@ namespace netSharp.Objects
             if (session == null) throw new ArgumentNullException();
             lock (SessionList)
             {
+                if (SessionList.Contains(session)) throw new DuplicateNameException();
                 SessionList.Add(session);
                 session.SessionDataRecieved += HandleSessionDataRecieved;
                 SessionCreatedTrigger();
             }
         }
 
-        public void RemoveSession(Session client)
+        public void RemoveSession(Session session)
         {
-            if (client == null) throw new ArgumentNullException();
+            if (session == null) throw new ArgumentNullException();
             lock (SessionList)
             {
-                if (!SessionList.Contains(client)) throw new InstanceNotFoundException();
-                SessionList.Remove(client);
+                if (!SessionList.Contains(session)) throw new InstanceNotFoundException();
+                session.SessionDataRecieved -= HandleSessionDataRecieved;
+                SessionList.Remove(session);
                 SessionRemovedTrigger();
             }
         }

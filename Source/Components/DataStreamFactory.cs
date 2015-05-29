@@ -10,55 +10,41 @@ namespace netSharp.Components
 {
     public static class DataStreamFactory
     {
-        public static int GetPayloadLength(byte[] payloadLengthBytes)
+        public static DataStream InitializeStreamObject(byte[] protocolInfoBytes)
         {
-            if (payloadLengthBytes.Length != 4)
+            var stream = new DataStream();
+            using (var memStream = new MemoryStream(protocolInfoBytes))
             {
-                throw new Exception("Invalid input byte array length");
+                var payloadLengthBuffer = new byte[4];
+                memStream.Read(payloadLengthBuffer, 0, payloadLengthBuffer.Length);
+                stream.PayloadLength = BitConverter.ToInt32(payloadLengthBuffer, 0);
+
+                var guidBuffer = new byte[4];
+                memStream.Read(guidBuffer, 0, guidBuffer.Length);
+                stream.Guid = Encoding.Default.GetString(guidBuffer);
+
+                var payloadTypeBuffer = new byte[2];
+                memStream.Read(payloadTypeBuffer, 0, payloadTypeBuffer.Length);
+                stream.PayloadType = BitConverter.ToUInt16(payloadTypeBuffer, 0);
             }
-            return BitConverter.ToInt32(payloadLengthBytes,0);
+            return stream;
         }
 
-        public static byte[] StreamToByteArray(DataStream DataStream)
+        public static byte[] GetStreamByteArray(DataStream DataStream)
         {
             var byteArrayList = new List<byte[]>();
-            var futureUsePadding = new byte[4];
 
-            byteArrayList.Add(BitConverter.GetBytes(Convert.ToInt32(DataStream.PayloadByteArray.Length))); // Add payloadLength to list
+            byteArrayList.Add(BitConverter.GetBytes(Convert.ToInt32(DataStream.PayloadByteArray.Length)));
+                // Add payloadLength to list
             byteArrayList.Add(Encoding.Default.GetBytes(DataStream.Guid)); // Add GUID to list
-            byteArrayList.Add(futureUsePadding); // Add 4-byte future use padding to list
             byteArrayList.Add(BitConverter.GetBytes(DataStream.PayloadType)); // Add payloadType to list
             byteArrayList.Add(DataStream.PayloadByteArray); // Add payload to list
 
             return ByteArrayListCombinator(byteArrayList);
         }
 
-        public static DataStream ByteArrayToStream(byte[] streamBytes, int payloadLength)
-        {
-            var stream = new DataStream();
-
-            using (var memoryStream = new MemoryStream(streamBytes))
-            {
-                var guidBuffer = new byte[4];
-                memoryStream.Read(guidBuffer, 0, guidBuffer.Length);
-                stream.Guid = Encoding.Default.GetString(guidBuffer);
-
-                var futureUseBuffer = new byte[4];
-                memoryStream.Read(futureUseBuffer, 0, futureUseBuffer.Length);
-
-                var payloadTypeBuffer = new byte[2];
-                memoryStream.Read(payloadTypeBuffer, 0, payloadTypeBuffer.Length);
-                stream.PayloadType = BitConverter.ToUInt16(payloadTypeBuffer, 0);
-
-                var payloadBuffer = new byte[payloadLength];
-                memoryStream.Read(payloadBuffer, 0, payloadBuffer.Length);
-                stream.PayloadByteArray = payloadBuffer;
-            }
-            return stream;
-        }
-
         /// <summary>
-        /// Uses a memory DataStream and a binary formatter to serialize the PayloadObject
+        ///     Uses a memory DataStream and a binary formatter to serialize the PayloadObject
         /// </summary>
         /// <param name="_payload"></param>
         /// <returns></returns>
@@ -73,7 +59,7 @@ namespace netSharp.Components
         }
 
         /// <summary>
-        /// Uses a memory DataStream and a binary formatter to deserialize the PayloadByteArray
+        ///     Uses a memory DataStream and a binary formatter to deserialize the PayloadByteArray
         /// </summary>
         /// <returns>Deserialized object</returns>
         public static object PayloadDeserializer(byte[] _payload)

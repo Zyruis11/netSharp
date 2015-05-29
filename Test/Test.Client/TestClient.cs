@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Net;
+using System.Text;
 using netSharp.Events;
 
 namespace Test.Client
@@ -25,7 +26,6 @@ namespace Test.Client
         private void Initialize()
         {
             Console.WriteLine("Starting up...");
-            System.Threading.Thread.Sleep(2500); // Debug build only, prevents deadlocking
             _client = new netSharp.Objects.Client();
             _client.SessionCreated += HandleSessionCreatedEvent;
             _client.SessionRemoved += HandleSessionRemovedEvent;
@@ -72,10 +72,13 @@ namespace Test.Client
             {
                 case "CONNECT":
                 {
-                    var remoteIpAddress = IPAddress.Parse("127.0.0.1");
-                    var remotePort = 3000;
-                    var remoteIpEndpoint = new IPEndPoint(remoteIpAddress, remotePort);
-                    _client.NewSession(remoteIpEndpoint);
+                    for (int i = 0; i < 1000; i++)
+                    {
+                        var remoteIpAddress = IPAddress.Parse("10.0.0.2");
+                        var remotePort = 3000;
+                        var remoteIpEndpoint = new IPEndPoint(remoteIpAddress, remotePort);
+                        _client.NewSession(remoteIpEndpoint);
+                    }
 
                     break;
                 }
@@ -91,8 +94,13 @@ namespace Test.Client
                 {
                     Stopwatch stopwatch = new Stopwatch();
                     stopwatch.Start();
-                    var test = new byte[100000];
+
+                    string sendString = "Hello World!!!";
+
+                    //var test = Encoding.Default.GetBytes(sendString);
+                    var test = new byte[10000];
                      _client.SendData(test, "ALLSERVERS");
+
                     stopwatch.Stop();
                     TimeSpan ts = stopwatch.Elapsed;
 

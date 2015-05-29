@@ -11,6 +11,7 @@ namespace netSharp.Components
             var sessionsToDispose = new List<Session>();
             var sessionsToInitialize = new List<Session>();
             var maxIdleTime = 900;
+            var sessionsToInitializeCount = 25; // Max number of sessions to initialize per pass
 
             if (maxSessionCount != 0 && sessionList.Count != 0)
             {
@@ -29,10 +30,11 @@ namespace netSharp.Components
                         continue;
                     }
 
-                    //if (!session.SentGuid)
-                    //{
-                    //    sessionsToInitialize.Add(session);
-                    //}
+                    if (!session.SentGuid && sessionsToInitializeCount > 0)
+                    {
+                        sessionsToInitializeCount--;
+                        sessionsToInitialize.Add(session);
+                    }
 
                     if (!session.UseHeartbeat)
                     {
@@ -107,7 +109,8 @@ namespace netSharp.Components
 
         public static DataStream CreateHelloStream(string localEndpointGuid)
         {
-            var dataStream = new DataStream(localEndpointGuid, 0, "");
+            byte[] helloBytes = new byte[0];
+            var dataStream = new DataStream(localEndpointGuid, 0, helloBytes);
             return dataStream;
         }
     }
