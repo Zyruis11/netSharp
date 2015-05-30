@@ -2,6 +2,7 @@
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using System.Threading;
 using netSharp.Components;
 using netSharp.Events;
 
@@ -11,8 +12,10 @@ namespace netSharp.Objects
     {
         private readonly TcpClient _tcpClient;
         private ASCIIEncoding _asciiEncoding;
+        private CancellationToken _asyncStreamReaderCancellationToken;
         private Action _messageRecievedCallback;
         private NetworkStream _networkStream;
+        private CancellationTokenSource ctSource;
 
         /// <summary>
         /// </summary>
@@ -80,12 +83,12 @@ namespace netSharp.Objects
 
         public void Dispose()
         {
-            Disconnect();
+            ctSource.Cancel();
+
             IsDisposed = true;
         }
 
         public event EventHandler<NetSharpEventArgs> SessionDataRecieved;
-        public event EventHandler<NetSharpEventArgs> SessionErrorOccured;
         // Event Handler-Trigger Binding
         protected virtual void EventInvocationWrapper(NetSharpEventArgs netSharpEventArgs,
             EventHandler<NetSharpEventArgs> eventHandler)
@@ -101,11 +104,6 @@ namespace netSharp.Objects
             EventInvocationWrapper(new NetSharpEventArgs(DataStream, session), SessionDataRecieved);
         }
 
-        public void SessionErrorOccuredTrigger(string exceptionMessage)
-        {
-            EventInvocationWrapper(new NetSharpEventArgs(null, null, exceptionMessage), SessionErrorOccured);
-        }
-
         private void Connect()
         {
             if (!_tcpClient.Connected)
@@ -114,75 +112,104 @@ namespace netSharp.Objects
                 RemoteEndpointIpAddressPort = _tcpClient.Client.RemoteEndPoint.ToString();
             }
             _networkStream = _tcpClient.GetStream();
-            AsyncStreamReader();
-        }
 
-        public void Disconnect()
-        {
-            if (_tcpClient.Connected)
-            {
-                _networkStream.Close();
-                _tcpClient.Close();
-            }
+            ctSource = new CancellationTokenSource();
+            _asyncStreamReaderCancellationToken = ctSource.Token;
+
+            StreamReaderAsync();
         }
 
         public void SendData(DataStream DataStream)
         {
             if (DataStream != null)
             {
-                AsyncStreamWriter(DataStream);
+                StreamWriterAsync(DataStream);
             }
         }
 
         /// <summary>
-        ///     Blocks on the NetworkStream of the TcpClient, it recieves data sent across
-        ///     the stream and sends it to a parsing function for further processing.
+        ///     Non-Blocking asynchronous I/O
         /// </summary>
-        private async void AsyncStreamReader()
+        private async void StreamReaderAsync()
         {
             while (!IsDisposed)
             {
-                if (_networkStream.CanRead)
+                var incompleteStream = false;
+                var protocolInfoBuffer = new byte[10];
+                var initialBytesRead = 0;
+
+                // Asynchronously read the network stream
+                try
                 {
-                    var protocolInfoBuffer = new byte[10];
-                    var initialBytesRead =
+                    initialBytesRead =
                         await _networkStream.ReadAsync(protocolInfoBuffer, 0, protocolInfoBuffer.Length);
+                }
+                catch
+                {
+                    break;
+                }
+
+                if (initialBytesRead == 0)
+                {
+                    continue;
+                }
+
+                if (!incompleteStream)
+                {
+                    // Instantiate a new DataStream object to store this recieved stream
                     var dataStream = DataStreamFactory.InitializeStreamObject(protocolInfoBuffer);
 
-                    if (initialBytesRead == 0)
-                    {
-                        break;
-                    }
-
                     var payloadBytesRead = 0;
-                    
+                    var payloadBytesRemaining = dataStream.PayloadLength;
                     dataStream.PayloadByteArray = new byte[dataStream.PayloadLength];
-                  
+
+                    // Continue reading the stream until the entire PayloadLength has been read
+
                     while (payloadBytesRead < dataStream.PayloadLength)
                     {
-                        payloadBytesRead +=
-                       await
-                           _networkStream.ReadAsync(
-                               dataStream.PayloadByteArray, 0,
-                               dataStream.PayloadLength);
-                    }         
+                        try
+                        {
+                            payloadBytesRead +=
+                                await
+                                    _networkStream.ReadAsync(
+                                        dataStream.PayloadByteArray, 0,
+                                        payloadBytesRemaining, _asyncStreamReaderCancellationToken);
+                        }
+                        catch
+                        {
+                            break;
+                        }
 
-                    SessionDataRecievedTrigger(dataStream, this);
+                        if (payloadBytesRead == 0)
+                        {
+                            return;
+                        }
 
-                    if (RemoteEndpointGuid == "notset")
-                    {
-                        RemoteEndpointGuid = dataStream.Guid;
+                        payloadBytesRemaining -= payloadBytesRead;
                     }
                 }
             }
 
-            _networkStream.Close();
+            // If cancellation has been requested that means that this object has been disposed
+            // cleanup the network resources.
+            if (_asyncStreamReaderCancellationToken.IsCancellationRequested)
+            {
+                _networkStream.Close();
+                _tcpClient.Close();
+            }
         }
 
-        private async void AsyncStreamWriter(DataStream DataStream)
+        private async void StreamWriterAsync(DataStream DataStream)
         {
-            var serializedDataStream = DataStreamFactory.GetStreamByteArray(DataStream);          
-            await _networkStream.WriteAsync(serializedDataStream, 0, serializedDataStream.Length);
+            try
+            {
+                var serializedDataStream = DataStreamFactory.GetStreamByteArray(DataStream);
+                await _networkStream.WriteAsync(serializedDataStream, 0, serializedDataStream.Length);
+            }
+            catch
+            {
+                
+            }
         }
     }
 }

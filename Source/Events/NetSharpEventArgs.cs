@@ -24,6 +24,5 @@ namespace netSharp.Events
         public string Message { get; set; }
         public DataStream DataStream { get; set; }
         public Session SessionReference { get; set; }
-        public bool HasFired { get; set; }
     }
 }

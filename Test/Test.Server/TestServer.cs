@@ -28,7 +28,7 @@ namespace Test.Server
             var serverBindAddr = "10.0.0.2";
             var serverBindPort = 3000;
             var serverIpEndPoint = new IPEndPoint(IPAddress.Parse(serverBindAddr), serverBindPort);
-            _server = new netSharp.Objects.Server(serverIpEndPoint, 10000);
+            _server = new netSharp.Objects.Server(serverIpEndPoint, 20000);
             _server.SessionCreated += HandleSessionCreated;
             _server.SessionRemoved += HandleSessionRemoved;
             _server.ClientDataReceived += HandleSessionDataReceived;

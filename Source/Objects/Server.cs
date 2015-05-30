@@ -82,6 +82,11 @@ namespace netSharp.Objects
         {
             e.SessionReference.IdleTime = 0;
 
+            if (e.SessionReference.RemoteEndpointGuid == "notset")
+            {
+                e.SessionReference.RemoteEndpointGuid = e.DataStream.Guid;
+            }
+
             switch (e.DataStream.PayloadType)
             {
                 case 0: // Hello
@@ -95,10 +100,6 @@ namespace netSharp.Objects
                     break;
                 }
             }
-        }
-
-        public void HandleSessionErrorRecieved(object sender, NetSharpEventArgs e)
-        {
         }
 
         private void ServerTimerTick(object source, ElapsedEventArgs eea)

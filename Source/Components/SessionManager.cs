@@ -8,10 +8,15 @@ namespace netSharp.Components
     {
         public static void SessionStateEngine(List<Session> sessionList, int maxSessionCount = 0)
         {
+            if (sessionList.Count == 0)
+            {
+                return;
+            }
+
             var sessionsToDispose = new List<Session>();
             var sessionsToInitialize = new List<Session>();
             var maxIdleTime = 900;
-            var sessionsToInitializeCount = 25; // Max number of sessions to initialize per pass
+            var sessionsToInitializeCount = 250; // Max number of sessions to initialize per pass
 
             if (maxSessionCount != 0 && sessionList.Count != 0)
             {
@@ -68,19 +73,18 @@ namespace netSharp.Components
 
                 foreach (var session in sessionsToDispose)
                 {
-                    session.Dispose();
                     sessionList.Remove(session);
+                    session.Dispose();                   
                 }
-
-                GC.Collect();
-                GC.WaitForPendingFinalizers();
             }
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
         }
 
         private static int ScaleMaxIdleTimer(int maxSessionCount, int currentSessionCount)
         {
             var baseIdleTimer = 900.0;
-            var minIdleTimer = 30.0;
+            var minIdleTimer = 10.0;
 
             var usagePercentage = currentSessionCount/(double) maxSessionCount;
 
@@ -98,12 +102,15 @@ namespace netSharp.Components
             session.TimeSinceLastHeartbeatRecieve = 0;
         }
 
-        public static async void SessionIntializer(List<Session> sessionsToInitialize)
+        public static void SessionIntializer(List<Session> sessionsToInitialize)
         {
             foreach (var session in sessionsToInitialize)
             {
-                session.SendData(CreateHelloStream(session.LocalEndpointGuid));
-                session.SentGuid = true;
+                if (session.IsDisposed != true)
+                {
+                    session.SendData(CreateHelloStream(session.LocalEndpointGuid));
+                    session.SentGuid = true;
+                }
             }
         }
 

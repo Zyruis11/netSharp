@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Management.Instrumentation;
 using System.Net;
 using System.Timers;
@@ -67,6 +68,13 @@ namespace netSharp.Objects
 
         public void HandleSessionDataRecieved(object sender, NetSharpEventArgs e)
         {
+            e.SessionReference.IdleTime = 0;
+
+            if (e.SessionReference.RemoteEndpointGuid == "notset")
+            {
+                e.SessionReference.RemoteEndpointGuid = e.DataStream.Guid;
+            }
+
             switch (e.DataStream.PayloadType)
             {
                 case 0: // Hello
@@ -81,10 +89,6 @@ namespace netSharp.Objects
                     break;
                 }
             }
-        }
-
-        public void HandleSessionErrorRecieved(object sender, NetSharpEventArgs e)
-        {
         }
 
         public void ClientTimerTick(object source, ElapsedEventArgs eea)
@@ -123,24 +127,26 @@ namespace netSharp.Objects
             AddSession(session);
         }
 
-        public void AddSession(Session serverSession)
+        public void AddSession(Session session)
         {
-            if (serverSession == null) throw new ArgumentNullException();
+            if (session == null) throw new ArgumentNullException();
             lock (SessionList)
             {
-                SessionList.Add(serverSession);
-                serverSession.SessionDataRecieved += HandleSessionDataRecieved;
+                if (SessionList.Contains(session)) throw new DuplicateNameException();
+                SessionList.Add(session);
+                session.SessionDataRecieved += HandleSessionDataRecieved;
                 SessionCreatedTrigger();
             }
         }
 
-        public void RemoveSession(Session serverSession)
+        public void RemoveSession(Session session)
         {
-            if (serverSession == null) throw new ArgumentNullException("serverSession");
+            if (session == null) throw new ArgumentNullException();
             lock (SessionList)
             {
-                if (!SessionList.Contains(serverSession)) throw new InstanceNotFoundException();
-                SessionList.Remove(serverSession);
+                if (!SessionList.Contains(session)) throw new InstanceNotFoundException();
+                session.SessionDataRecieved -= HandleSessionDataRecieved;
+                SessionList.Remove(session);
                 SessionRemovedTrigger();
             }
         }

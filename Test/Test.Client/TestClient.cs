@@ -72,7 +72,7 @@ namespace Test.Client
             {
                 case "CONNECT":
                 {
-                    for (int i = 0; i < 1000; i++)
+                    for (int i = 0; i < 5000; i++)
                     {
                         var remoteIpAddress = IPAddress.Parse("10.0.0.2");
                         var remotePort = 3000;
