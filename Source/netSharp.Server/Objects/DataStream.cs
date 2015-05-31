@@ -1,6 +1,6 @@
-﻿using netSharp.Components;
+﻿using netSharp.Server.Components;
 
-namespace netSharp.Objects
+namespace netSharp.Server.Objects
 {
     public class DataStream
     {

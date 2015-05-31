@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using netSharp.Objects;
+using netSharp.Server.Objects;
 
-namespace netSharp.Components
+namespace netSharp.Server.Components
 {
     internal static class SessionManager
     {
@@ -84,7 +84,7 @@ namespace netSharp.Components
         private static int ScaleMaxIdleTimer(int maxSessionCount, int currentSessionCount)
         {
             var baseIdleTimer = 900.0;
-            var minIdleTimer = 10.0;
+            var minIdleTimer = 30.0;
 
             var usagePercentage = currentSessionCount/(double) maxSessionCount;
 

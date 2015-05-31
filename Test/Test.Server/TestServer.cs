@@ -1,13 +1,13 @@
 ﻿using System;
 using System.Net;
 using System.Text;
-using netSharp.Events;
+using netSharp.Server.Events;
 
 namespace Test.Server
 {
     internal class TestServer
     {
-        private netSharp.Objects.Server _server;
+        private netSharp.Server.Objects.Server _server;
         private bool IsDisposed;
 
         public void Dispose() //to-do: Call dispose method
@@ -25,10 +25,10 @@ namespace Test.Server
         private void Initialize()
         {
             Console.WriteLine("Starting up...");
-            var serverBindAddr = "10.0.0.2";
+            var serverBindAddr = "10.0.0.10";
             var serverBindPort = 3000;
             var serverIpEndPoint = new IPEndPoint(IPAddress.Parse(serverBindAddr), serverBindPort);
-            _server = new netSharp.Objects.Server(serverIpEndPoint, 20000);
+            _server = new netSharp.Server.Objects.Server(serverIpEndPoint, 20000);
             _server.SessionCreated += HandleSessionCreated;
             _server.SessionRemoved += HandleSessionRemoved;
             _server.ClientDataReceived += HandleSessionDataReceived;

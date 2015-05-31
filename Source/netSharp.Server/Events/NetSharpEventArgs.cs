@@ -1,7 +1,6 @@
-﻿using System.IO;
-using netSharp.Objects;
+﻿using netSharp.Server.Objects;
 
-namespace netSharp.Events
+namespace netSharp.Server.Events
 {
     public class NetSharpEventArgs
     {

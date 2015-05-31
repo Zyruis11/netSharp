@@ -3,10 +3,10 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
-using netSharp.Components;
-using netSharp.Events;
+using netSharp.Server.Components;
+using netSharp.Server.Events;
 
-namespace netSharp.Objects
+namespace netSharp.Server.Objects
 {
     public class Session : IDisposable
     {

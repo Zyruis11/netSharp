@@ -4,9 +4,9 @@ using System.IO;
 using System.Linq;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
-using netSharp.Objects;
+using netSharp.Server.Objects;
 
-namespace netSharp.Components
+namespace netSharp.Server.Components
 {
     public static class DataStreamFactory
     {

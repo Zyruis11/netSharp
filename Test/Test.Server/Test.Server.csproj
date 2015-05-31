@@ -67,9 +67,9 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Source\netSharp.csproj">
+    <ProjectReference Include="..\..\Source\netSharp.Server\netSharp.Server.csproj">
       <Project>{5776d090-cae8-492f-b15a-5530ef7a45cf}</Project>
-      <Name>netSharp</Name>
+      <Name>netSharp.Server</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

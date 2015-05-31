@@ -4,10 +4,10 @@ using System.Data;
 using System.Management.Instrumentation;
 using System.Net;
 using System.Timers;
-using netSharp.Components;
-using netSharp.Events;
+using netSharp.Server.Components;
+using netSharp.Server.Events;
 
-namespace netSharp.Objects
+namespace netSharp.Server.Objects
 {
     public class Client : IDisposable
     {

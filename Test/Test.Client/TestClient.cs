@@ -2,13 +2,13 @@
 using System.Diagnostics;
 using System.Net;
 using System.Text;
-using netSharp.Events;
+using netSharp.Server.Events;
 
 namespace Test.Client
 {
     internal class TestClient : IDisposable
     {
-        private netSharp.Objects.Client _client;
+        private netSharp.Server.Objects.Client _client;
         private bool _isDisposed;
 
         public void Dispose() //to-do: Call dispose method
@@ -26,7 +26,7 @@ namespace Test.Client
         private void Initialize()
         {
             Console.WriteLine("Starting up...");
-            _client = new netSharp.Objects.Client();
+            _client = new netSharp.Server.Objects.Client();
             _client.SessionCreated += HandleSessionCreatedEvent;
             _client.SessionRemoved += HandleSessionRemovedEvent;
             _client.ServerDataRecieved += HandleServerDataRecieved;
@@ -74,7 +74,7 @@ namespace Test.Client
                 {
                     for (int i = 0; i < 5000; i++)
                     {
-                        var remoteIpAddress = IPAddress.Parse("10.0.0.2");
+                        var remoteIpAddress = IPAddress.Parse("10.0.0.10");
                         var remotePort = 3000;
                         var remoteIpEndpoint = new IPEndPoint(remoteIpAddress, remotePort);
                         _client.NewSession(remoteIpEndpoint);
