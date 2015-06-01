@@ -7,7 +7,7 @@ namespace Test.Server
 {
     internal class TestServer
     {
-        private netSharp.Server.Objects.Server _server;
+        private netSharp.Server.Endpoints.Server _server;
         private bool IsDisposed;
 
         public void Dispose() //to-do: Call dispose method
@@ -28,24 +28,24 @@ namespace Test.Server
             var serverBindAddr = "10.0.0.10";
             var serverBindPort = 3000;
             var serverIpEndPoint = new IPEndPoint(IPAddress.Parse(serverBindAddr), serverBindPort);
-            _server = new netSharp.Server.Objects.Server(serverIpEndPoint, 20000);
+            _server = new netSharp.Server.Endpoints.Server(serverIpEndPoint, 20000);
             _server.SessionCreated += HandleSessionCreated;
             _server.SessionRemoved += HandleSessionRemoved;
             _server.ClientDataReceived += HandleSessionDataReceived;
             Console.WriteLine("Started server at {0}", DateTime.Now);
         }
 
-        private void HandleSessionCreated(object sender, NetSharpEventArgs e)
+        private void HandleSessionCreated(object sender, ServerEvents e)
         {
             Console.WriteLine("New Client Joined");
         }
 
-        private void HandleSessionRemoved(object sender, NetSharpEventArgs e)
+        private void HandleSessionRemoved(object sender, ServerEvents e)
         {
             Console.WriteLine("Client Removed");
         }
 
-        private void HandleSessionDataReceived(object sender, NetSharpEventArgs e)
+        private void HandleSessionDataReceived(object sender, ServerEvents e)
         {
             //var str = Encoding.Default.GetString(e.DataStream.PayloadByteArray);
             Console.WriteLine("Recieved Data " + e.DataStream.PayloadByteArray.Length);

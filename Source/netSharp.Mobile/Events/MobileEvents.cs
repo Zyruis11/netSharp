@@ -1,10 +1,11 @@
-﻿using netSharp.Server.Objects;
+﻿using netSharp.Core.Data;
+using netSharp.Mobile.Connectivity;
 
-namespace netSharp.Server.Events
+namespace netSharp.Mobile.Events
 {
-    public class NetSharpEventArgs
+    public class MobileEvents
     {
-        public NetSharpEventArgs(DataStream dataStreamArg = null, Session sessionArg = null, string MessageArg = null)
+        public MobileEvents(DataStream dataStreamArg = null, MobileSession sessionArg = null, string MessageArg = null)
         {
             if (dataStreamArg  != null)
             {
@@ -22,6 +23,6 @@ namespace netSharp.Server.Events
 
         public string Message { get; set; }
         public DataStream DataStream { get; set; }
-        public Session SessionReference { get; set; }
+        public MobileSession SessionReference { get; set; }
     }
 }

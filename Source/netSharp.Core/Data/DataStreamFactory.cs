@@ -2,11 +2,9 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
-using netSharp.Server.Objects;
 
-namespace netSharp.Server.Components
+namespace netSharp.Core.Data
 {
     public static class DataStreamFactory
     {
@@ -21,7 +19,7 @@ namespace netSharp.Server.Components
 
                 var guidBuffer = new byte[4];
                 memStream.Read(guidBuffer, 0, guidBuffer.Length);
-                stream.Guid = Encoding.Default.GetString(guidBuffer);
+                stream.Guid = Encoding.UTF8.GetString(guidBuffer,0,4);
 
                 var payloadTypeBuffer = new byte[2];
                 memStream.Read(payloadTypeBuffer, 0, payloadTypeBuffer.Length);
@@ -36,42 +34,11 @@ namespace netSharp.Server.Components
 
             byteArrayList.Add(BitConverter.GetBytes(Convert.ToInt32(DataStream.PayloadByteArray.Length)));
                 // Add payloadLength to list
-            byteArrayList.Add(Encoding.Default.GetBytes(DataStream.Guid)); // Add GUID to list
+            byteArrayList.Add(Encoding.UTF8.GetBytes(DataStream.Guid)); // Add GUID to list
             byteArrayList.Add(BitConverter.GetBytes(DataStream.PayloadType)); // Add payloadType to list
             byteArrayList.Add(DataStream.PayloadByteArray); // Add payload to list
 
             return ByteArrayListCombinator(byteArrayList);
-        }
-
-        /// <summary>
-        ///     Uses a memory DataStream and a binary formatter to serialize the PayloadObject
-        /// </summary>
-        /// <param name="_payload"></param>
-        /// <returns></returns>
-        public static byte[] PayloadSerializer(object _payload)
-        {
-            using (var ms = new MemoryStream())
-            {
-                var binForm = new BinaryFormatter();
-                binForm.Serialize(ms, _payload);
-                return ms.ToArray();
-            }
-        }
-
-        /// <summary>
-        ///     Uses a memory DataStream and a binary formatter to deserialize the PayloadByteArray
-        /// </summary>
-        /// <returns>Deserialized object</returns>
-        public static object PayloadDeserializer(byte[] _payload)
-        {
-            using (var memStream = new MemoryStream())
-            {
-                memStream.Write(_payload, 0, _payload.Length);
-                memStream.Seek(0, SeekOrigin.Begin);
-                var binForm = new BinaryFormatter();
-                var obj = binForm.Deserialize(memStream);
-                return obj;
-            }
         }
 
         private static byte[] ByteArrayListCombinator(List<byte[]> byteArrayList)

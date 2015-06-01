@@ -1,6 +1,5 @@
-﻿using netSharp.Server.Components;
-
-namespace netSharp.Server.Objects
+﻿
+namespace netSharp.Core.Data
 {
     public class DataStream
     {
@@ -22,8 +21,7 @@ namespace netSharp.Server.Objects
         }
 
         /// <summary>
-        ///     Use this constructor to instantiate a new DataStream object with null props
-        ///     that can be set later.
+        /// Default constructor    
         /// </summary>
         public DataStream()
         {
@@ -33,14 +31,5 @@ namespace netSharp.Server.Objects
         public int PayloadLength { get; set; }
         public ushort PayloadType { get; set; }
         public byte[] PayloadByteArray { get; set; }
-
-        public object GetPayloadObject()
-        {
-            if (PayloadByteArray != null)
-            {
-                return DataStreamFactory.PayloadDeserializer(PayloadByteArray);
-            }
-            return null;
-        }
     }
 }

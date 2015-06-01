@@ -1,20 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
-using netSharp.Server.Objects;
+using netSharp.Core.Data;
 
-namespace netSharp.Server.Components
+namespace netSharp.Server.Connectivity
 {
-    internal static class SessionManager
+    internal static class ServerSessionManager
     {
-        public static void SessionStateEngine(List<Session> sessionList, int maxSessionCount = 0)
+        public static void SessionStateEngine(List<ServerSession> sessionList, int maxSessionCount = 0)
         {
             if (sessionList.Count == 0)
             {
                 return;
             }
 
-            var sessionsToDispose = new List<Session>();
-            var sessionsToInitialize = new List<Session>();
+            var sessionsToDispose = new List<ServerSession>();
+            var sessionsToInitialize = new List<ServerSession>();
             var maxIdleTime = 900;
             var sessionsToInitializeCount = 250; // Max number of sessions to initialize per pass
 
@@ -39,26 +39,7 @@ namespace netSharp.Server.Components
                     {
                         sessionsToInitializeCount--;
                         sessionsToInitialize.Add(session);
-                    }
-
-                    if (!session.UseHeartbeat)
-                    {
-                        continue;
-                    }
-
-                    session.TimeSinceLastHeartbeatRecieve += 1;
-                    if (session.TimeSinceLastHeartbeatRecieve >= session.MaxTimeSinceLastHeartbeatReceive)
-                    {
-                        sessionsToDispose.Add(session);
-                        continue;
-                    }
-
-                    session.TimeUntilNextHeartbeatSend -= 1;
-                    if (session.TimeUntilNextHeartbeatSend <= 0)
-                    {
-                        session.SendData(CreateHelloStream(session.LocalEndpointGuid));
-                        session.TimeUntilNextHeartbeatSend = 10;
-                    }
+                    }                   
                 }
 
                 if (sessionsToInitialize.Count > 0)
@@ -97,18 +78,13 @@ namespace netSharp.Server.Components
             return Convert.ToInt32(returnValue);
         }
 
-        public static void ProcessRecievedHello(Session session)
-        {
-            session.TimeSinceLastHeartbeatRecieve = 0;
-        }
-
-        public static void SessionIntializer(List<Session> sessionsToInitialize)
+        public static void SessionIntializer(List<ServerSession> sessionsToInitialize)
         {
             foreach (var session in sessionsToInitialize)
             {
                 if (session.IsDisposed != true)
                 {
-                    session.SendData(CreateHelloStream(session.LocalEndpointGuid));
+                    session.StreamWriterAsync(CreateHelloStream(session.LocalEndpointGuid));
                     session.SentGuid = true;
                 }
             }

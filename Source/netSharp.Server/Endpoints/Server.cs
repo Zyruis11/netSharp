@@ -5,23 +5,22 @@ using System.Management.Instrumentation;
 using System.Net;
 using System.Net.Sockets;
 using System.Timers;
-using netSharp.Server.Components;
+using netSharp.Core.Data;
+using netSharp.Core.Helpers;
+using netSharp.Server.Connectivity;
 using netSharp.Server.Events;
 
-namespace netSharp.Server.Objects
+namespace netSharp.Server.Endpoints
 {
     public class Server : IDisposable
     {
-        private readonly IPAddress _listenAddress;
-        private readonly int _listenPort;
         private readonly Timer _serverTimer;
         private readonly TcpListener _tcpListener;
-        private int _clientFactoryExceptionCount;
 
         public Server(IPEndPoint serverIpEndpoint, int maxClientCount)
         {
             ServerGuid = ShortGuidGenerator.NewShortGuid();
-            SessionList = new List<Session>();
+            SessionList = new List<ServerSession>();
 
             _serverTimer = new Timer(1000);
             _serverTimer.Elapsed += ServerTimerTick;
@@ -33,7 +32,7 @@ namespace netSharp.Server.Objects
         }
 
         public string ServerGuid { get; set; }
-        public List<Session> SessionList { get; set; }
+        public List<ServerSession> SessionList { get; set; }
         public bool IsDisposed { get; set; }
         public int MaxClientCount { get; set; }
 
@@ -43,13 +42,12 @@ namespace netSharp.Server.Objects
             IsDisposed = true;
         }
 
-        public event EventHandler<NetSharpEventArgs> SessionRemoved;
-        public event EventHandler<NetSharpEventArgs> SessionCreated;
-        public event EventHandler<NetSharpEventArgs> SessionError;
-        public event EventHandler<NetSharpEventArgs> ClientDataReceived;
+        public event EventHandler<ServerEvents> SessionRemoved;
+        public event EventHandler<ServerEvents> SessionCreated;
+        public event EventHandler<ServerEvents> ClientDataReceived;
         // Event Handler-Trigger Binding
-        protected virtual void EventInvocationWrapper(NetSharpEventArgs netSharpEventArgs,
-            EventHandler<NetSharpEventArgs> eventHandler)
+        protected virtual void EventInvocationWrapper(ServerEvents netSharpEventArgs,
+            EventHandler<ServerEvents> eventHandler)
         {
             if (eventHandler != null)
             {
@@ -59,25 +57,25 @@ namespace netSharp.Server.Objects
 
         public void SessionCreatedTrigger()
         {
-            EventInvocationWrapper(new NetSharpEventArgs(), SessionCreated);
+            EventInvocationWrapper(new ServerEvents(), SessionCreated);
         }
 
         public void SessionRemovedTrigger()
         {
-            EventInvocationWrapper(new NetSharpEventArgs(), SessionRemoved);
+            EventInvocationWrapper(new ServerEvents(), SessionRemoved);
         }
 
         public void SessionErrorTrigger()
         {
-            EventInvocationWrapper(new NetSharpEventArgs(), SessionRemoved);
+            EventInvocationWrapper(new ServerEvents(), SessionRemoved);
         }
 
         public void ClientDataReceivedTrigger(DataStream dataStream)
         {
-            EventInvocationWrapper(new NetSharpEventArgs(dataStream), ClientDataReceived);
+            EventInvocationWrapper(new ServerEvents(dataStream), ClientDataReceived);
         }
 
-        public void HandleSessionDataRecieved(object sender, NetSharpEventArgs e)
+        public void HandleSessionDataRecieved(object sender, ServerEvents e)
         {
             e.SessionReference.IdleTime = 0;
 
@@ -90,11 +88,11 @@ namespace netSharp.Server.Objects
             {
                 case 0: // Hello
                 {
-                    SessionManager.ProcessRecievedHello(e.SessionReference);
                     break;
                 }
                 case 11: // Application Data
                 {
+                    e.SessionReference.IdleTime = 0;
                     ClientDataReceivedTrigger(e.DataStream);
                     break;
                 }
@@ -103,7 +101,7 @@ namespace netSharp.Server.Objects
 
         private void ServerTimerTick(object source, ElapsedEventArgs eea)
         {
-            SessionManager.SessionStateEngine(SessionList, MaxClientCount);
+            ServerSessionManager.SessionStateEngine(SessionList, MaxClientCount);
         }
 
         public void SendData(byte[] payloadObject, string destinationGuid = "")
@@ -119,7 +117,7 @@ namespace netSharp.Server.Objects
             {
                 if (session.RemoteEndpointGuid == destinationGuid)
                 {
-                    session.SendData(DataStream);
+                    session.StreamWriterAsync(DataStream);
                 }
             }
         }
@@ -132,7 +130,7 @@ namespace netSharp.Server.Objects
             {
                 var tcpClient = await _tcpListener.AcceptTcpClientAsync();
                 if (SessionList.Count >= MaxClientCount) throw new Exception("Unable to add session");
-                var clientObject = new Session(0, null, ServerGuid, tcpClient);
+                var clientObject = new ServerSession(0, null, ServerGuid, tcpClient);
                 AddSession(clientObject);
             }
             _tcpListener.Stop();
@@ -143,7 +141,7 @@ namespace netSharp.Server.Objects
             SessionFactory();
         }
 
-        public void AddSession(Session session)
+        public void AddSession(ServerSession session)
         {
             if (session == null) throw new ArgumentNullException();
             lock (SessionList)
@@ -155,7 +153,7 @@ namespace netSharp.Server.Objects
             }
         }
 
-        public void RemoveSession(Session session)
+        public void RemoveSession(ServerSession session)
         {
             if (session == null) throw new ArgumentNullException();
             lock (SessionList)

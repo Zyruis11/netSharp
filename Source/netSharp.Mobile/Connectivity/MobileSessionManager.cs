@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace netSharp.Mobile
+namespace netSharp.Mobile.Connectivity
 {
-    public class Class1
+    internal static class MobileSessionManager
     {
     }
 }

@@ -73,7 +73,6 @@ namespace Test.Mobile
                 var result = buffer.ToArray();
                 statusBox.Text += string.Format("Read {0} bytes from server\n", result.Length);
 
-                // TODO: Get the payload length and prepare a buffer to recieve the rest of the payload
             }
         }
     }

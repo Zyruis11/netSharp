@@ -1,14 +1,13 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Net;
-using System.Text;
 using netSharp.Server.Events;
 
 namespace Test.Client
 {
     internal class TestClient : IDisposable
     {
-        private netSharp.Server.Objects.Client _client;
+        private netSharp.Server.Endpoints.Experimental.Client _client;
         private bool _isDisposed;
 
         public void Dispose() //to-do: Call dispose method
@@ -26,7 +25,7 @@ namespace Test.Client
         private void Initialize()
         {
             Console.WriteLine("Starting up...");
-            _client = new netSharp.Server.Objects.Client();
+            _client = new netSharp.Server.Endpoints.Experimental.Client();
             _client.SessionCreated += HandleSessionCreatedEvent;
             _client.SessionRemoved += HandleSessionRemovedEvent;
             _client.ServerDataRecieved += HandleServerDataRecieved;
@@ -35,22 +34,22 @@ namespace Test.Client
             Console.WriteLine("Started client at {0}", DateTime.Now);
         }
 
-        private void HandleServerDataRecieved(object sender, NetSharpEventArgs e)
+        private void HandleServerDataRecieved(object sender, ServerEvents e)
         {
             Console.WriteLine("New Server Message Recieved");
         }
 
-        private void HandleSessionRemovedEvent(object sender, NetSharpEventArgs e)
+        private void HandleSessionRemovedEvent(object sender, ServerEvents e)
         {
             Console.WriteLine("Session Removed");
         }
 
-        private void HandleSessionCreatedEvent(object sender, NetSharpEventArgs e)
+        private void HandleSessionCreatedEvent(object sender, ServerEvents e)
         {
             Console.WriteLine("Session Created");
         }
 
-        private void HandleSessionErrorEvent(object sender, NetSharpEventArgs e)
+        private void HandleSessionErrorEvent(object sender, ServerEvents e)
         {
         }
 
@@ -72,7 +71,7 @@ namespace Test.Client
             {
                 case "CONNECT":
                 {
-                    for (int i = 0; i < 5000; i++)
+                    for (var i = 0; i < 5000; i++)
                     {
                         var remoteIpAddress = IPAddress.Parse("10.0.0.10");
                         var remotePort = 3000;
@@ -92,17 +91,14 @@ namespace Test.Client
                 }
                 case "TEST":
                 {
-                    Stopwatch stopwatch = new Stopwatch();
+                    var stopwatch = new Stopwatch();
                     stopwatch.Start();
 
-                    string sendString = "Hello World!!!";
-
-                    //var test = Encoding.Default.GetBytes(sendString);
                     var test = new byte[10000];
-                     _client.SendData(test, "ALLSERVERS");
+                    _client.SendData(test, "ALLSERVERS");
 
                     stopwatch.Stop();
-                    TimeSpan ts = stopwatch.Elapsed;
+                    var ts = stopwatch.Elapsed;
 
                     Console.WriteLine("{0} ms", ts.TotalMilliseconds);
                     break;
@@ -119,7 +115,6 @@ namespace Test.Client
                         foreach (var session in _client.SessionList)
                         {
                             Console.WriteLine("{0}         {1}            {2}", session.RemoteEndpointGuid,
-                                session.TimeSinceLastHeartbeatRecieve,
                                 session.RemoteEndpointIpAddressPort);
                         }
                     }

@@ -4,41 +4,43 @@ using System.Data;
 using System.Management.Instrumentation;
 using System.Net;
 using System.Timers;
-using netSharp.Server.Components;
+using netSharp.Core.Data;
+using netSharp.Core.Helpers;
+using netSharp.Server.Connectivity;
 using netSharp.Server.Events;
 
-namespace netSharp.Server.Objects
+namespace netSharp.Server.Endpoints.Experimental
 {
     public class Client : IDisposable
     {
         private readonly Timer _clientTimer;
-        private bool _isDisposed;
 
         public Client()
         {
             ClientGuid = ShortGuidGenerator.NewShortGuid();
-            SessionList = new List<Session>();
+            SessionList = new List<ServerSession>();
 
-            _clientTimer = new Timer(10000);
+            _clientTimer = new Timer(5000);
             _clientTimer.Elapsed += ClientTimerTick;
             _clientTimer.Enabled = true;
         }
 
-        public List<Session> SessionList { get; set; }
+        public bool IsDisposed { get; set; }
+        public List<ServerSession> SessionList { get; set; }
         public string ClientGuid { get; set; }
 
         public void Dispose()
         {
-            _isDisposed = true;
+            IsDisposed = true;
         }
 
-        public event EventHandler<NetSharpEventArgs> SessionRemoved;
-        public event EventHandler<NetSharpEventArgs> SessionCreated;
-        public event EventHandler<NetSharpEventArgs> SessionError;
-        public event EventHandler<NetSharpEventArgs> ServerDataRecieved;
+        public event EventHandler<ServerEvents> SessionRemoved;
+        public event EventHandler<ServerEvents> SessionCreated;
+        public event EventHandler<ServerEvents> SessionError;
+        public event EventHandler<ServerEvents> ServerDataRecieved;
         // Event Handler-Trigger Binding
-        protected virtual void EventInvocationWrapper(NetSharpEventArgs netSharpEventArgs,
-            EventHandler<NetSharpEventArgs> eventHandler)
+        protected virtual void EventInvocationWrapper(ServerEvents netSharpEventArgs,
+            EventHandler<ServerEvents> eventHandler)
         {
             if (eventHandler != null)
             {
@@ -48,25 +50,25 @@ namespace netSharp.Server.Objects
 
         public void SessionCreatedTrigger()
         {
-            EventInvocationWrapper(new NetSharpEventArgs(), SessionCreated);
+            EventInvocationWrapper(new ServerEvents(), SessionCreated);
         }
 
         public void SessionRemovedTrigger()
         {
-            EventInvocationWrapper(new NetSharpEventArgs(), SessionRemoved);
+            EventInvocationWrapper(new ServerEvents(), SessionRemoved);
         }
 
         public void SessionErrorTrigger(string errorMessage)
         {
-            EventInvocationWrapper(new NetSharpEventArgs(null, null, errorMessage), SessionError);
+            EventInvocationWrapper(new ServerEvents(null, null, errorMessage), SessionError);
         }
 
         public void ServerDataReceivedTrigger(DataStream dataStream)
         {
-            EventInvocationWrapper(new NetSharpEventArgs(dataStream), ServerDataRecieved);
+            EventInvocationWrapper(new ServerEvents(dataStream), ServerDataRecieved);
         }
 
-        public void HandleSessionDataRecieved(object sender, NetSharpEventArgs e)
+        public void HandleSessionDataRecieved(object sender, ServerEvents e)
         {
             e.SessionReference.IdleTime = 0;
 
@@ -79,7 +81,6 @@ namespace netSharp.Server.Objects
             {
                 case 0: // Hello
                 {
-                    SessionManager.ProcessRecievedHello(e.SessionReference);
                     break;
                 }
                 case 11: // Application Data
@@ -93,7 +94,7 @@ namespace netSharp.Server.Objects
 
         public void ClientTimerTick(object source, ElapsedEventArgs eea)
         {
-            SessionManager.SessionStateEngine(SessionList);
+            ServerSessionManager.SessionStateEngine(SessionList);
         }
 
         public void SendData(byte[] payloadObject, string destinationGuid = null)
@@ -106,7 +107,7 @@ namespace netSharp.Server.Objects
                 {
                     if (session.RemoteEndpointGuid == destinationGuid)
                     {
-                        session.SendData(DataStream);
+                        session.StreamWriterAsync(DataStream);
                     }
                 }
                 return;
@@ -116,18 +117,18 @@ namespace netSharp.Server.Objects
             {
                 foreach (var session in SessionList)
                 {
-                    session.SendData(DataStream);
+                    session.StreamWriterAsync(DataStream);
                 }
             }
         }
 
         public void NewSession(IPEndPoint remoteIpEndpoint)
         {
-            var session = new Session(1, remoteIpEndpoint, ClientGuid);
+            var session = new ServerSession(1, remoteIpEndpoint, ClientGuid);
             AddSession(session);
         }
 
-        public void AddSession(Session session)
+        public void AddSession(ServerSession session)
         {
             if (session == null) throw new ArgumentNullException();
             lock (SessionList)
@@ -139,7 +140,7 @@ namespace netSharp.Server.Objects
             }
         }
 
-        public void RemoveSession(Session session)
+        public void RemoveSession(ServerSession session)
         {
             if (session == null) throw new ArgumentNullException();
             lock (SessionList)

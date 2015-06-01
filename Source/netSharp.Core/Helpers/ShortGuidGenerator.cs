@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Text;
 
-namespace netSharp.Server.Components
+namespace netSharp.Core.Helpers
 {
     public static class ShortGuidGenerator
     {

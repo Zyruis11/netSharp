@@ -58,18 +58,18 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Objects\DataStream.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Components\DataStreamFactory.cs" />
-    <Compile Include="Objects\Client.cs" />
-    <Compile Include="Events\NetSharpEventArgs.cs" />
-    <Compile Include="Components\ShortGuidGenerator.cs" />
-    <Compile Include="Components\SessionManager.cs" />
-    <Compile Include="Objects\Session.cs" />
-    <Compile Include="Objects\Server.cs" />
+    <Compile Include="Endpoints\Experimental\Client.cs" />
+    <Compile Include="Events\ServerEvents.cs" />
+    <Compile Include="Connectivity\ServerSessionManager.cs" />
+    <Compile Include="Connectivity\ServerSession.cs" />
+    <Compile Include="Endpoints\Server.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Experimental\" />
+    <ProjectReference Include="..\netSharp.Core\netSharp.Core.csproj">
+      <Project>{35d5f727-048b-4277-bf0d-6ba99694ffbf}</Project>
+      <Name>netSharp.Core</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
