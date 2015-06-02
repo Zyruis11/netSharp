@@ -29,8 +29,6 @@ namespace Test.Client
             _client.SessionCreated += HandleSessionCreatedEvent;
             _client.SessionRemoved += HandleSessionRemovedEvent;
             _client.ServerDataRecieved += HandleServerDataRecieved;
-            _client.SessionError += HandleSessionErrorEvent;
-
             Console.WriteLine("Started client at {0}", DateTime.Now);
         }
 
@@ -47,10 +45,6 @@ namespace Test.Client
         private void HandleSessionCreatedEvent(object sender, ServerEvents e)
         {
             Console.WriteLine("Session Created");
-        }
-
-        private void HandleSessionErrorEvent(object sender, ServerEvents e)
-        {
         }
 
         private void InputLoop()
@@ -71,7 +65,7 @@ namespace Test.Client
             {
                 case "CONNECT":
                 {
-                    for (var i = 0; i < 5000; i++)
+                    for (var i = 0; i < 1000; i++)
                     {
                         var remoteIpAddress = IPAddress.Parse("10.0.0.10");
                         var remotePort = 3000;
@@ -79,14 +73,6 @@ namespace Test.Client
                         _client.NewSession(remoteIpEndpoint);
                     }
 
-                    break;
-                }
-                case "DISCONNECT":
-                {
-                    foreach (var session in _client.SessionList)
-                    {
-                        session.Dispose();
-                    }
                     break;
                 }
                 case "TEST":
@@ -101,26 +87,6 @@ namespace Test.Client
                     var ts = stopwatch.Elapsed;
 
                     Console.WriteLine("{0} ms", ts.TotalMilliseconds);
-                    break;
-                }
-                case "CLIENTS":
-                {
-                    //to-do: Show Information on Main
-                    Console.WriteLine("{0} Server sessions", _client.SessionList.Count);
-
-                    Console.WriteLine("Server Name | Last Heard | Server Address/Port");
-
-                    lock (_client.SessionList)
-                    {
-                        foreach (var session in _client.SessionList)
-                        {
-                            Console.WriteLine("{0}         {1}            {2}", session.RemoteEndpointGuid,
-                                session.RemoteEndpointIpAddressPort);
-                        }
-                    }
-
-                    Console.WriteLine("{0} Clients connected", _client.SessionList.Count);
-
                     break;
                 }
                 case "SHOW GUID":

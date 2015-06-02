@@ -47,8 +47,6 @@ namespace Test.Server
 
         private void HandleSessionDataReceived(object sender, ServerEvents e)
         {
-            //var str = Encoding.Default.GetString(e.DataStream.PayloadByteArray);
-            Console.WriteLine("Recieved Data " + e.DataStream.PayloadByteArray.Length);
         }
 
         private void InputLoop()
@@ -67,27 +65,6 @@ namespace Test.Server
 
             switch (commandToUpper)
             {
-                case "CLIENTS":
-                {
-                    //to-do: Show Information on Main
-                    Console.WriteLine("{0}/{1} Clients connected", _server.SessionList.Count, _server.MaxClientCount);
-
-                    Console.WriteLine("Client GUID | Use Heartbeat? - Idle Time/Max Idle Time | ToClient Address/Port");
-
-                    lock (_server.SessionList)
-                    {
-                        foreach (var session in _server.SessionList)
-                        {
-                            Console.WriteLine("{0}          {1} - {2}/{3}                           {4}",
-                                session.RemoteEndpointGuid,
-                                session.UseHeartbeat, session.IdleTime, session.MaxIdleTime,
-                                session.RemoteEndpointIpAddressPort);
-                        }
-                    }
-
-                    Console.WriteLine("{0}/{1} Clients connected", _server.SessionList.Count, _server.MaxClientCount);
-                    break;
-                }
                 case "CLEAR":
                 {
                     Console.Clear();

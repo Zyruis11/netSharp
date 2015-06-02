@@ -4,19 +4,17 @@ using netSharp.Core.Data;
 
 namespace netSharp.Server.Connectivity
 {
-    internal static class ServerSessionManager
+    internal static class SessionManager
     {
-        public static void SessionStateEngine(List<ServerSession> sessionList, int maxSessionCount = 0)
+        public static void SessionStateEngine(List<Session> sessionList, int maxSessionCount = 0)
         {
             if (sessionList.Count == 0)
             {
                 return;
             }
 
-            var sessionsToDispose = new List<ServerSession>();
-            var sessionsToInitialize = new List<ServerSession>();
+            var sessionsToDispose = new List<Session>();
             var maxIdleTime = 900;
-            var sessionsToInitializeCount = 250; // Max number of sessions to initialize per pass
 
             if (maxSessionCount != 0 && sessionList.Count != 0)
             {
@@ -33,19 +31,8 @@ namespace netSharp.Server.Connectivity
                     {
                         sessionsToDispose.Add(session);
                         continue;
-                    }
-
-                    if (!session.SentGuid && sessionsToInitializeCount > 0)
-                    {
-                        sessionsToInitializeCount--;
-                        sessionsToInitialize.Add(session);
-                    }                   
-                }
-
-                if (sessionsToInitialize.Count > 0)
-                {
-                    SessionIntializer(sessionsToInitialize);
-                }
+                    }              
+                }             
 
                 if (sessionsToDispose.Count == 0)
                 {
@@ -76,18 +63,6 @@ namespace netSharp.Server.Connectivity
                 return Convert.ToInt32(minIdleTimer);
             }
             return Convert.ToInt32(returnValue);
-        }
-
-        public static void SessionIntializer(List<ServerSession> sessionsToInitialize)
-        {
-            foreach (var session in sessionsToInitialize)
-            {
-                if (session.IsDisposed != true)
-                {
-                    session.StreamWriterAsync(CreateHelloStream(session.LocalEndpointGuid));
-                    session.SentGuid = true;
-                }
-            }
         }
 
         public static DataStream CreateHelloStream(string localEndpointGuid)

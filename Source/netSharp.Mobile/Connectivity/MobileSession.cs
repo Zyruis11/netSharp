@@ -1,58 +1,27 @@
 ﻿using System;
 using System.Runtime.InteropServices.WindowsRuntime;
 using Windows.Networking;
-using Windows.Networking.Connectivity;
 using Windows.Networking.Sockets;
 using Windows.Storage.Streams;
 using netSharp.Core.Data;
+using netSharp.Core.Interfaces;
 using netSharp.Mobile.Events;
-using Buffer = Windows.Storage.Streams.Buffer;
 
 namespace netSharp.Mobile.Connectivity
 {
-    public class MobileSession
+    public class MobileSession : ISession
     {
         private StreamSocket clientSocket;
-        public bool Connected { get; set; }
-        private bool Closing { get; set; }
 
         public MobileSession(HostName hostname, string port, string localGuid)
         {
             ConnectAsync(hostname, port);
         }
 
-        public void Dispose()
-        {
-            clientSocket.Dispose();
-            clientSocket = null;
-            Connected = false;
-        }
+        public bool Connected { get; set; }
+        private bool Closing { get; set; }
 
-        public event EventHandler<MobileEvents> SessionDataReceieved;
-
-        // Event Handler-Trigger Binding
-        protected virtual void EventInvocationWrapper(MobileEvents mobileEvents,
-            EventHandler<MobileEvents> eventHandler)
-        {
-            if (eventHandler != null)
-            {
-                eventHandler(this, mobileEvents);
-            }
-        }
-
-        public void SessionDataReceivedTrigger(DataStream dataStream, MobileSession mobileSession)
-        {
-            EventInvocationWrapper(new MobileEvents(dataStream, this), SessionDataReceieved);
-        }
-
-        private async void ConnectAsync(HostName serverHostName, string serverPort)
-        {
-            await clientSocket.ConnectAsync(serverHostName, serverPort);
-            Connected = true;
-            StreamReaderAsync();
-        }
-
-        private async void StreamReaderAsync()
+        public async void ReadDataAsync()
         {
             while (Connected)
             {
@@ -74,7 +43,7 @@ namespace netSharp.Mobile.Connectivity
             }
         }
 
-        private async void StreamWriterAsync(DataStream dataStream)
+        public async void SendDataAsync(DataStream dataStream)
         {
             if (!Connected)
             {
@@ -85,7 +54,7 @@ namespace netSharp.Mobile.Connectivity
             {
                 var buffer = DataStreamFactory.GetStreamByteArray(dataStream).AsBuffer();
                 await clientSocket.OutputStream.WriteAsync(buffer);
-            } 
+            }
             catch (Exception exception)
             {
                 if (SocketError.GetStatus(exception.HResult) == SocketErrorStatus.Unknown)
@@ -93,6 +62,36 @@ namespace netSharp.Mobile.Connectivity
                     throw;
                 }
             }
+        }
+
+        public void Dispose()
+        {
+            clientSocket.Dispose();
+            clientSocket = null;
+            Connected = false;
+        }
+
+        public event EventHandler<MobileEvents> SessionDataReceieved;
+
+        protected virtual void EventInvocationWrapper(MobileEvents mobileEvents,
+            EventHandler<MobileEvents> eventHandler)
+        {
+            if (eventHandler != null)
+            {
+                eventHandler(this, mobileEvents);
+            }
+        }
+
+        public void SessionDataReceivedTrigger(DataStream dataStream, MobileSession mobileSession)
+        {
+            EventInvocationWrapper(new MobileEvents(dataStream, this), SessionDataReceieved);
+        }
+
+        private async void ConnectAsync(HostName serverHostName, string serverPort)
+        {
+            await clientSocket.ConnectAsync(serverHostName, serverPort);
+            Connected = true;
+            ReadDataAsync();
         }
     }
 }

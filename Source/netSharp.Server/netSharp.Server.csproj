@@ -58,11 +58,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Interfaces\IServer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Endpoints\Experimental\Client.cs" />
     <Compile Include="Events\ServerEvents.cs" />
-    <Compile Include="Connectivity\ServerSessionManager.cs" />
-    <Compile Include="Connectivity\ServerSession.cs" />
+    <Compile Include="Connectivity\SessionManager.cs" />
+    <Compile Include="Connectivity\Session.cs" />
     <Compile Include="Endpoints\Server.cs" />
   </ItemGroup>
   <ItemGroup>

@@ -9,10 +9,11 @@ using netSharp.Core.Data;
 using netSharp.Core.Helpers;
 using netSharp.Server.Connectivity;
 using netSharp.Server.Events;
+using netSharp.Server.Interfaces;
 
 namespace netSharp.Server.Endpoints
 {
-    public class Server : IDisposable
+    public class Server : IDisposable, IServer
     {
         private readonly Timer _serverTimer;
         private readonly TcpListener _tcpListener;
@@ -20,7 +21,7 @@ namespace netSharp.Server.Endpoints
         public Server(IPEndPoint serverIpEndpoint, int maxClientCount)
         {
             ServerGuid = ShortGuidGenerator.NewShortGuid();
-            SessionList = new List<ServerSession>();
+            SessionList = new List<Session>();
 
             _serverTimer = new Timer(1000);
             _serverTimer.Elapsed += ServerTimerTick;
@@ -28,18 +29,47 @@ namespace netSharp.Server.Endpoints
 
             MaxClientCount = maxClientCount;
             _tcpListener = new TcpListener(serverIpEndpoint);
-            StartClientSessionFactory();
+            StartListener();
         }
 
         public string ServerGuid { get; set; }
-        public List<ServerSession> SessionList { get; set; }
+        public List<Session> SessionList { get; set; }
         public bool IsDisposed { get; set; }
         public int MaxClientCount { get; set; }
 
         public void Dispose()
         {
-            _tcpListener.Stop(); // Stop the session factory TcpListener.
+            _tcpListener.Stop(); // Stop the session factory ClientListener.
             IsDisposed = true;
+        }
+
+        public void SendDataAsync(byte[] payloadObject, Session session)
+        {
+            var DataStream = new DataStream(ServerGuid, 10, payloadObject);
+
+
+        }
+
+        public void StartListener()
+        {
+            ClientListener(true);
+        }
+
+        public void StopListener()
+        {
+            ClientListener(false);
+        }
+
+        public void RemoveSession(Session session)
+        {
+            if (session == null) throw new ArgumentNullException();
+            lock (SessionList)
+            {
+                if (!SessionList.Contains(session)) throw new InstanceNotFoundException();
+                session.SessionDataRecieved -= HandleSessionDataRecieved;
+                SessionList.Remove(session);
+                SessionRemovedTrigger();
+            }
         }
 
         public event EventHandler<ServerEvents> SessionRemoved;
@@ -65,11 +95,6 @@ namespace netSharp.Server.Endpoints
             EventInvocationWrapper(new ServerEvents(), SessionRemoved);
         }
 
-        public void SessionErrorTrigger()
-        {
-            EventInvocationWrapper(new ServerEvents(), SessionRemoved);
-        }
-
         public void ClientDataReceivedTrigger(DataStream dataStream)
         {
             EventInvocationWrapper(new ServerEvents(dataStream), ClientDataReceived);
@@ -86,11 +111,12 @@ namespace netSharp.Server.Endpoints
 
             switch (e.DataStream.PayloadType)
             {
-                case 0: // Hello
+                case 0: // netSharp Data
                 {
+                    //TODO: Process netSharp data
                     break;
                 }
-                case 11: // Application Data
+                case 10: // Application Data
                 {
                     e.SessionReference.IdleTime = 0;
                     ClientDataReceivedTrigger(e.DataStream);
@@ -101,67 +127,38 @@ namespace netSharp.Server.Endpoints
 
         private void ServerTimerTick(object source, ElapsedEventArgs eea)
         {
-            ServerSessionManager.SessionStateEngine(SessionList, MaxClientCount);
+            SessionManager.SessionStateEngine(SessionList, MaxClientCount);
         }
 
-        public void SendData(byte[] payloadObject, string destinationGuid = "")
+        private async void ClientListener(bool isStarting)
         {
-            var DataStream = new DataStream(ServerGuid, 11, payloadObject);
-
-            if (destinationGuid == null)
+            if (isStarting)
             {
-                throw new ArgumentNullException();
-            }
+                _tcpListener.Start();
 
-            foreach (var session in SessionList)
-            {
-                if (session.RemoteEndpointGuid == destinationGuid)
+                while (!IsDisposed)
                 {
-                    session.StreamWriterAsync(DataStream);
+                    var tcpClient = await _tcpListener.AcceptTcpClientAsync();
+                    if (SessionList.Count >= MaxClientCount) throw new Exception("Unable to add session");
+                    var clientObject = new Session(tcpClient);
+                    AddSession(clientObject);
                 }
             }
-        }
-
-        private async void SessionFactory()
-        {
-            _tcpListener.Start();
-
-            while (!IsDisposed)
+            else
             {
-                var tcpClient = await _tcpListener.AcceptTcpClientAsync();
-                if (SessionList.Count >= MaxClientCount) throw new Exception("Unable to add session");
-                var clientObject = new ServerSession(0, null, ServerGuid, tcpClient);
-                AddSession(clientObject);
+                _tcpListener.Stop();
             }
-            _tcpListener.Stop();
         }
 
-        public void StartClientSessionFactory()
-        {
-            SessionFactory();
-        }
-
-        public void AddSession(ServerSession session)
+        public void AddSession(Session session)
         {
             if (session == null) throw new ArgumentNullException();
             lock (SessionList)
             {
                 if (SessionList.Contains(session)) throw new DuplicateNameException();
-                SessionList.Add(session);
                 session.SessionDataRecieved += HandleSessionDataRecieved;
+                SessionList.Add(session);
                 SessionCreatedTrigger();
-            }
-        }
-
-        public void RemoveSession(ServerSession session)
-        {
-            if (session == null) throw new ArgumentNullException();
-            lock (SessionList)
-            {
-                if (!SessionList.Contains(session)) throw new InstanceNotFoundException();
-                session.SessionDataRecieved -= HandleSessionDataRecieved;
-                SessionList.Remove(session);
-                SessionRemovedTrigger();
             }
         }
     }

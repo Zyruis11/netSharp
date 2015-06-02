@@ -67,10 +67,6 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Source\netSharp.Core\netSharp.Core.csproj">
-      <Project>{35d5f727-048b-4277-bf0d-6ba99694ffbf}</Project>
-      <Name>netSharp.Core</Name>
-    </ProjectReference>
     <ProjectReference Include="..\..\Source\netSharp.Server\netSharp.Server.csproj">
       <Project>{5776d090-cae8-492f-b15a-5530ef7a45cf}</Project>
       <Name>netSharp.Server</Name>

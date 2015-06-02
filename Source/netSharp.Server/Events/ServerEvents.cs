@@ -5,7 +5,7 @@ namespace netSharp.Server.Events
 {
     public class ServerEvents
     {
-        public ServerEvents(DataStream dataStreamArg = null, ServerSession sessionArg = null, string MessageArg = null)
+        public ServerEvents(DataStream dataStreamArg = null, Session sessionArg = null, string MessageArg = null)
         {
             if (dataStreamArg  != null)
             {
@@ -23,6 +23,6 @@ namespace netSharp.Server.Events
 
         public string Message { get; set; }
         public DataStream DataStream { get; set; }
-        public ServerSession SessionReference { get; set; }
+        public Session SessionReference { get; set; }
     }
 }

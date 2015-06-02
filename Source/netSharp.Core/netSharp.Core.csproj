@@ -40,6 +40,8 @@
     <Compile Include="Data\DataStream.cs" />
     <Compile Include="Data\DataStreamFactory.cs" />
     <Compile Include="Helpers\ShortGuidGenerator.cs" />
+    <Compile Include="Interfaces\IClient.cs" />
+    <Compile Include="Interfaces\ISession.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Portable\$(TargetFrameworkVersion)\Microsoft.Portable.CSharp.targets" />
