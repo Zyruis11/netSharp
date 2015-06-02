@@ -25,7 +25,7 @@ namespace Test.Server
         private void Initialize()
         {
             Console.WriteLine("Starting up...");
-            var serverBindAddr = "10.0.0.10";
+            var serverBindAddr = "127.0.0.1";
             var serverBindPort = 3000;
             var serverIpEndPoint = new IPEndPoint(IPAddress.Parse(serverBindAddr), serverBindPort);
             _server = new netSharp.Server.Endpoints.Server(serverIpEndPoint, 20000);
@@ -47,6 +47,7 @@ namespace Test.Server
 
         private void HandleSessionDataReceived(object sender, ServerEvents e)
         {
+            Console.WriteLine("Session Data Received");
         }
 
         private void InputLoop()
@@ -65,6 +66,37 @@ namespace Test.Server
 
             switch (commandToUpper)
             {
+                case "SEND DATA":
+                {
+                    //TODO: Specify the recipient
+                    byte[] data = new byte[1000];
+                    _server.SendDataAsync(data);
+                    break;
+                }
+                case "START LISTENER":
+                {
+                    _server.StartListener();
+                    Console.WriteLine("Listener Started");
+                    break;
+                }
+
+                case "STOP LISTENER":
+                {
+                    _server.StopListener();
+                    Console.WriteLine("Listener Stopped");
+                    break;
+                }
+                case "ADD SESSION":
+                {
+                    //TODO: Get parameters and create session
+                    break;
+                }
+                case "REMOVE SESSION":
+                {
+                    //TODO: Find the session to be removed
+                    //_server.RemoveSession(session);
+                    break;
+                }
                 case "CLEAR":
                 {
                     Console.Clear();

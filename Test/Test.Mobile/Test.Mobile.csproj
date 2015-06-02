@@ -107,12 +107,6 @@
       <SubType>Designer</SubType>
     </Page>
   </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\..\Source\netSharp.Mobile\netSharp.Mobile.csproj">
-      <Project>{c72df0cd-c4a2-460f-8db1-9f8ab69e49d6}</Project>
-      <Name>netSharp.Mobile</Name>
-    </ProjectReference>
-  </ItemGroup>
   <PropertyGroup Condition=" '$(VisualStudioVersion)' == '' or '$(VisualStudioVersion)' &lt; '12.0' ">
     <VisualStudioVersion>12.0</VisualStudioVersion>
   </PropertyGroup>

@@ -17,7 +17,7 @@ namespace netSharp.Mobile.Endpoints
 
         public Client()
         {
-            ClientGuid = ShortGuidGenerator.NewShortGuid();
+            ClientGuid = ShortGuid.NewShortGuid();
             SessionList = new List<MobileSession>();
         }
 

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Net;
+using netSharp.Server.Connectivity;
 using netSharp.Server.Events;
 
 namespace Test.Client
@@ -34,7 +35,7 @@ namespace Test.Client
 
         private void HandleServerDataRecieved(object sender, ServerEvents e)
         {
-            Console.WriteLine("New Server Message Recieved");
+            Console.WriteLine("Session Data Recieved");
         }
 
         private void HandleSessionRemovedEvent(object sender, ServerEvents e)
@@ -63,35 +64,41 @@ namespace Test.Client
 
             switch (commandToUpper)
             {
-                case "CONNECT":
+                case "ADD SESSION":
                 {
-                    for (var i = 0; i < 1000; i++)
+                    try
                     {
-                        var remoteIpAddress = IPAddress.Parse("10.0.0.10");
-                        var remotePort = 3000;
-                        var remoteIpEndpoint = new IPEndPoint(remoteIpAddress, remotePort);
-                        _client.NewSession(remoteIpEndpoint);
+                        IPEndPoint ipEndPoint = new IPEndPoint(IPAddress.Loopback, 3000);
+                        Session session = new Session(ipEndPoint);
+                        _client.SessionList.Add(session);
                     }
-
+                    catch
+                    {
+                        Console.WriteLine("Unable to add session");
+                    }
                     break;
                 }
-                case "TEST":
+                case "REMOVE SESSION":
                 {
-                    var stopwatch = new Stopwatch();
-                    stopwatch.Start();
-
-                    var test = new byte[10000];
-                    _client.SendData(test, "ALLSERVERS");
-
-                    stopwatch.Stop();
-                    var ts = stopwatch.Elapsed;
-
-                    Console.WriteLine("{0} ms", ts.TotalMilliseconds);
+                    //TODO: Find the session to be removed
+                    //_client.SessionList.Remove(session);
+                    break;
+                }
+                case "SEND DATA":
+                {
+                    //TODO: Find the session to send data to
+                    byte[] data = new byte[1000];
+                    _client.SendDataAsync(data, null);
                     break;
                 }
                 case "SHOW GUID":
                 {
                     Console.WriteLine(_client.ClientGuid);
+                    break;
+                }
+                case "CLEAR":
+                {
+                    Console.Clear();
                     break;
                 }
             }

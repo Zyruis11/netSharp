@@ -6,18 +6,19 @@ using System.Net;
 using System.Timers;
 using netSharp.Core.Data;
 using netSharp.Core.Helpers;
+using netSharp.Core.Interfaces;
 using netSharp.Server.Connectivity;
 using netSharp.Server.Events;
 
 namespace netSharp.Server.Endpoints.Experimental
 {
-    public class Client : IDisposable
+    public class Client : IDisposable, IClient
     {
         private readonly Timer _clientTimer;
 
         public Client()
         {
-            ClientGuid = ShortGuidGenerator.NewShortGuid();
+            ClientGuid = ShortGuid.NewShortGuid();
             SessionList = new List<Session>();
 
             _clientTimer = new Timer(5000);
@@ -77,7 +78,7 @@ namespace netSharp.Server.Endpoints.Experimental
                 {
                     break;
                 }
-                case 11: // Application Data
+                case 10: // Application Data
                 {
                     e.SessionReference.IdleTime = 0;
                     ServerDataReceivedTrigger(e.DataStream);
@@ -91,27 +92,20 @@ namespace netSharp.Server.Endpoints.Experimental
             SessionManager.SessionStateEngine(SessionList);
         }
 
-        public void SendData(byte[] payloadObject, string destinationGuid = null)
+        public void SendDataAsync(byte[] payloadObject, Session session)
         {
-            var DataStream = new DataStream(ClientGuid, 11, payloadObject);
+            var dataStream = new DataStream(ClientGuid, 10, payloadObject);
 
-            if (destinationGuid.Length == 4) // If this is a sticky request i.e. a request intended for one server.
+            if (session != null)
             {
-                foreach (var session in SessionList)
-                {
-                    if (session.RemoteEndpointGuid == destinationGuid)
-                    {
-                        session.SendDataAsync(DataStream);
-                    }
-                }
-                return;
+                session.SendDataAsync(dataStream);
             }
 
-            if (destinationGuid == "ALLSERVERS")
+            else
             {
-                foreach (var session in SessionList)
+                foreach (var listSession in SessionList)
                 {
-                    session.SendDataAsync(DataStream);
+                    listSession.SendDataAsync(dataStream);
                 }
             }
         }

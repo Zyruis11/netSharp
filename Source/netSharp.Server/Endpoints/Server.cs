@@ -20,7 +20,7 @@ namespace netSharp.Server.Endpoints
 
         public Server(IPEndPoint serverIpEndpoint, int maxClientCount)
         {
-            ServerGuid = ShortGuidGenerator.NewShortGuid();
+            ServerGuid = ShortGuid.NewShortGuid();
             SessionList = new List<Session>();
 
             _serverTimer = new Timer(1000);
@@ -39,15 +39,26 @@ namespace netSharp.Server.Endpoints
 
         public void Dispose()
         {
-            _tcpListener.Stop(); // Stop the session factory ClientListener.
+            StopListener();
             IsDisposed = true;
         }
 
-        public void SendDataAsync(byte[] payloadObject, Session session)
+        public void SendDataAsync(byte[] payloadObject, Session session = null)
         {
-            var DataStream = new DataStream(ServerGuid, 10, payloadObject);
+            var dataStream = new DataStream(ServerGuid, 10, payloadObject);
 
+            if (session != null)
+            {
+                session.SendDataAsync(dataStream);
+            }
 
+            else
+            {
+                foreach (var listSession in SessionList)
+                {
+                    listSession.SendDataAsync(dataStream);
+                }
+            }        
         }
 
         public void StartListener()
@@ -69,6 +80,18 @@ namespace netSharp.Server.Endpoints
                 session.SessionDataRecieved -= HandleSessionDataRecieved;
                 SessionList.Remove(session);
                 SessionRemovedTrigger();
+            }
+        }
+
+        public void AddSession(Session session)
+        {
+            if (session == null) throw new ArgumentNullException();
+            lock (SessionList)
+            {
+                if (SessionList.Contains(session)) throw new DuplicateNameException();
+                session.SessionDataRecieved += HandleSessionDataRecieved;
+                SessionList.Add(session);
+                SessionCreatedTrigger();
             }
         }
 
@@ -147,18 +170,6 @@ namespace netSharp.Server.Endpoints
             else
             {
                 _tcpListener.Stop();
-            }
-        }
-
-        public void AddSession(Session session)
-        {
-            if (session == null) throw new ArgumentNullException();
-            lock (SessionList)
-            {
-                if (SessionList.Contains(session)) throw new DuplicateNameException();
-                session.SessionDataRecieved += HandleSessionDataRecieved;
-                SessionList.Add(session);
-                SessionCreatedTrigger();
             }
         }
     }
