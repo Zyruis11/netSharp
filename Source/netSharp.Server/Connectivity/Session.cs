@@ -31,13 +31,12 @@ namespace netSharp.Server.Connectivity
         public bool IsDisposed { get; set; }
         public string RemoteEndpointGuid { get; set; }
         public string LocalEndpointGuid { get; set; }
-        public int IdleTime { get; set; }
-        public int MaxIdleTime { get; set; }
+        public double IdleTime { get; set; }
+        public double MaxIdleTime { get; set; }
 
         public void Dispose()
         {
             ctSource.Cancel();
-
             IsDisposed = true;
         }
 

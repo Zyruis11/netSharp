@@ -1,38 +1,48 @@
 ﻿using System;
 using System.Collections.Generic;
-using netSharp.Core.Data;
 
 namespace netSharp.Server.Connectivity
 {
-    internal static class SessionManager
+    internal class SessionManager
     {
-        public static void SessionStateEngine(List<Session> sessionList, int maxSessionCount = 0)
+
+        public SessionManager(NsEndpoint endpoint)
         {
-            if (sessionList.Count == 0)
+            if (endpoint == null)
+            {
+                throw new NullReferenceException();
+            }
+            EndpointContext = endpoint;
+            MaxIdleTime = 900;
+            MinIdleTime = 30;
+        }
+
+        public double MaxIdleTime { get; set; }
+        public double MinIdleTime { get; set; }
+        public NsEndpoint EndpointContext { get; set; }
+
+        public void TimerTick()
+        {
+            if (EndpointContext.SessionList.Count == 0)
             {
                 return;
             }
 
             var sessionsToDispose = new List<Session>();
-            var maxIdleTime = 900;
-
-            if (maxSessionCount != 0 && sessionList.Count != 0)
+            
+            MaxIdleTime = ScaleMaxIdleTimer(EndpointContext.MaxSessionCount, EndpointContext.SessionList.Count);
+            
+            lock (EndpointContext.SessionList)
             {
-                maxIdleTime = ScaleMaxIdleTimer(maxSessionCount, sessionList.Count);
-            }
-
-            lock (sessionList)
-            {
-                foreach (var session in sessionList)
+                foreach (var session in EndpointContext.SessionList)
                 {
                     session.IdleTime += 1;
-                    session.MaxIdleTime = maxIdleTime;
-                    if (session.IdleTime >= maxIdleTime)
+                    session.MaxIdleTime = MaxIdleTime;
+                    if (session.IdleTime >= MaxIdleTime)
                     {
                         sessionsToDispose.Add(session);
-                        continue;
-                    }              
-                }             
+                    }
+                }
 
                 if (sessionsToDispose.Count == 0)
                 {
@@ -41,35 +51,24 @@ namespace netSharp.Server.Connectivity
 
                 foreach (var session in sessionsToDispose)
                 {
-                    sessionList.Remove(session);
-                    session.Dispose();                   
+                    EndpointContext.SessionList.Remove(session);
+                    session.Dispose();
                 }
             }
             GC.Collect();
             GC.WaitForPendingFinalizers();
         }
 
-        private static int ScaleMaxIdleTimer(int maxSessionCount, int currentSessionCount)
+        private int ScaleMaxIdleTimer(int maxSessionCount, int currentSessionCount)
         {
-            var baseIdleTimer = 900.0;
-            var minIdleTimer = 30.0;
-
             var usagePercentage = currentSessionCount/(double) maxSessionCount;
+            var returnValue = (MaxIdleTime - (usagePercentage*MaxIdleTime));
 
-            var returnValue = (baseIdleTimer - (usagePercentage*baseIdleTimer));
-
-            if (returnValue < minIdleTimer)
+            if (returnValue < MinIdleTime)
             {
-                return Convert.ToInt32(minIdleTimer);
+                return Convert.ToInt32(MinIdleTime);
             }
             return Convert.ToInt32(returnValue);
-        }
-
-        public static DataStream CreateHelloStream(string localEndpointGuid)
-        {
-            byte[] helloBytes = new byte[0];
-            var dataStream = new DataStream(localEndpointGuid, 0, helloBytes);
-            return dataStream;
         }
     }
 }

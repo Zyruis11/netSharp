@@ -4,12 +4,11 @@ using Windows.Networking;
 using Windows.Networking.Sockets;
 using Windows.Storage.Streams;
 using netSharp.Core.Data;
-using netSharp.Core.Interfaces;
 using netSharp.Mobile.Events;
 
 namespace netSharp.Mobile.Connectivity
 {
-    public class MobileSession : ISession
+    public class MobileSession
     {
         private StreamSocket clientSocket;
 
