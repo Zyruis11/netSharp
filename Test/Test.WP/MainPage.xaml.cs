@@ -26,10 +26,10 @@ namespace Test.WP
     public sealed partial class MainPage : Page
     {
         private readonly StreamSocket clientSocket;
-        private bool closing = false;
+        //private bool closing = false;
         private bool connected;
         private HostName serverHost;
-        private string serverHostnameString;
+        //private string serverHostnameString;
 
         public MainPage()
         {
