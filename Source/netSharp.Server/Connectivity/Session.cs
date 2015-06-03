@@ -112,9 +112,9 @@ namespace netSharp.Server.Connectivity
 
         public async void SendDataAsync(DataStream dataStream)
         {
-            var serializedDataStream = DataStreamFactory.GetStreamByteArray(dataStream);
+            var byteArray = DataStreamFactory.GetStreamByteArray(dataStream);
             await
-                _networkStream.WriteAsync(serializedDataStream, 0, serializedDataStream.Length,
+                _networkStream.WriteAsync(byteArray, 0, byteArray.Length,
                     _asyncCancellationToken);
         }
 
