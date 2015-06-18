@@ -1,8 +1,8 @@
-﻿using System.Net;
-using System.Runtime.Remoting.Channels;
+﻿using System;
+using System.Net;
 using System.Windows;
-using netSharp.Server.Connectivity;
-using netSharp.Server.Events;
+using netSharp.Windows.Connectivity;
+using netSharp.Windows.Events;
 
 namespace Test.Endpoint
 {
@@ -11,8 +11,9 @@ namespace Test.Endpoint
     /// </summary>
     public partial class MainWindow : Window
     {
-        private NsEndpoint _nsEndpoint;
-        private bool EndPointActive;
+        private LocalEndpoint _localEndpoint;
+        private bool _endPointActive;
+        private bool _isServer;
 
         public MainWindow()
         {
@@ -21,40 +22,45 @@ namespace Test.Endpoint
 
         private void EndpointControlButton_Click(object sender, RoutedEventArgs e)
         {
-            if (!EndPointActive)
+            if (!_endPointActive)
             {
                 switch (EndpointTypeSelector.Text)
                 {
                     case "Server":
                     {
                         var ipEndPoint = new IPEndPoint(IPAddress.Parse("127.0.0.1"), 3000);
-                        _nsEndpoint = new NsEndpoint(true, ipEndPoint, 100);
+                        _localEndpoint = new LocalEndpoint(true, ipEndPoint, 100);
+                        Title = "Server";
+                        _isServer = true;
                         break;
                     }
                     case "Client":
                     {
-                        _nsEndpoint = new NsEndpoint(false);
+                        _localEndpoint = new LocalEndpoint(false);
+                        Title = "Client";
+                        _isServer = false;
                         break;
                     }
-                    default :
+                    default:
                     {
                         return;
                     }
                 }
-                if (_nsEndpoint != null)
+                if (_localEndpoint != null)
                 {
-                    _nsEndpoint.SessionCreated += SessionAddedHandler;
-                    _nsEndpoint.SessionRemoved += SessionRemovedHandler;
-                    _nsEndpoint.SessionDataRecieved += SessionDataRecievedHandler;
-                    EndPointActive = true;
+                    _localEndpoint.SessionCreated += SessionAddedHandler;
+                    _localEndpoint.SessionRemoved += SessionRemovedHandler;
+                    _localEndpoint.SessionDataRecieved += SessionDataRecievedHandler;
+                    _endPointActive = true;
                     EndpointControlButton.Content = "Stop";
                 }
             }
             else
             {
-                _nsEndpoint.Dispose();
-                EndPointActive = false;
+                _localEndpoint.Dispose();
+                _endPointActive = false;
                 EndpointControlButton.Content = "Start";
+                Title = "Not Running";
             }
         }
 
@@ -75,9 +81,25 @@ namespace Test.Endpoint
 
         private void SendData_Click(object sender, RoutedEventArgs e)
         {
-            byte[] test = new byte[0];
-            _nsEndpoint.SendDataAsync(test);
+            var sendSize = Convert.ToInt32(dataSizeTb.Text);
+            var sendRepeat = Convert.ToInt32(dataRepeatTb.Text);
+
+            while (sendRepeat > 0)
+            {
+                var test = new byte[sendSize];
+                _localEndpoint.SendDataAsync(test);
+                sendRepeat--;
+            }
         }
 
+        private void connectServerButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (!_isServer)
+            {
+                IPAddress remoteEndpointIp = IPAddress.Parse(remoteEndPoint.Text);
+                IPEndPoint remoteIpEndpoint = new IPEndPoint(remoteEndpointIp, 3000);
+                _localEndpoint.NewSession(remoteIpEndpoint);
+            }
+        }
     }
 }

@@ -3,10 +3,10 @@ using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using netSharp.Core.Data;
-using netSharp.Core.Interfaces;
-using netSharp.Server.Events;
+using netSharp.Windows.Events;
+using netSharp.Windows.Interfaces;
 
-namespace netSharp.Server.Connectivity
+namespace netSharp.Windows.Connectivity
 {
     public class Session : IDisposable, ISession
     {
@@ -49,17 +49,12 @@ namespace netSharp.Server.Connectivity
                 var protocolInfoBuffer = new byte[10];
                 var initialBytesRead = 0;
 
-                try
-                {
-                    initialBytesRead =
-                        await
-                            _networkStream.ReadAsync(protocolInfoBuffer, 0, protocolInfoBuffer.Length,
-                                _asyncCancellationToken);
-                }
-                catch
-                {
-                    break;
-                }
+
+                initialBytesRead =
+                    await
+                        _networkStream.ReadAsync(protocolInfoBuffer, 0, protocolInfoBuffer.Length,
+                            _asyncCancellationToken);
+
 
                 if (_asyncCancellationToken.IsCancellationRequested)
                 {
@@ -68,7 +63,8 @@ namespace netSharp.Server.Connectivity
 
                 if (initialBytesRead == 0)
                 {
-                    continue;
+                    IdleTime = MaxIdleTime;
+                    break;
                 }
 
                 var dataStream = DataStreamFactory.InitializeStreamObject(protocolInfoBuffer);
@@ -94,6 +90,7 @@ namespace netSharp.Server.Connectivity
 
                     if (payloadBytesRead == 0)
                     {
+                        IdleTime = MaxIdleTime;
                         return;
                     }
 

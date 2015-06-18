@@ -1,8 +1,6 @@
-﻿using System.Collections.Generic;
-using netSharp.Core.Data;
-using netSharp.Server.Connectivity;
+﻿using netSharp.Windows.Connectivity;
 
-namespace netSharp.Server.Interfaces
+namespace netSharp.Windows.Interfaces
 {
     public interface IEndpoint
     {

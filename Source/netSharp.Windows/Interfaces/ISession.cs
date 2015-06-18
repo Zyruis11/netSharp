@@ -1,6 +1,6 @@
 ﻿using netSharp.Core.Data;
 
-namespace netSharp.Core.Interfaces
+namespace netSharp.Windows.Interfaces
 {
     public interface ISession
     {

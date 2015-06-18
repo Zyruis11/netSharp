@@ -7,19 +7,19 @@ using System.Net.Sockets;
 using System.Timers;
 using netSharp.Core.Data;
 using netSharp.Core.Helpers;
-using netSharp.Server.Events;
-using netSharp.Server.Interfaces;
+using netSharp.Windows.Events;
+using netSharp.Windows.Interfaces;
 
-namespace netSharp.Server.Connectivity
+namespace netSharp.Windows.Connectivity
 {
-    public class NsEndpoint : IDisposable, IEndpoint
+    public class LocalEndpoint : IDisposable, IEndpoint
     {
         private readonly Timer _endpointTimer;
         private readonly IPEndPoint _localIpEndPoint;
         private readonly SessionManager _sessionManager;
         private readonly TcpListener _tcpListener;
 
-        public NsEndpoint(bool isServer, IPEndPoint localIpEndPoint = null, int maxSessionCount = 10)
+        public LocalEndpoint(bool isServer, IPEndPoint localIpEndPoint = null, int maxSessionCount = 10)
         {
             LocalGuid = ShortGuid.NewShortGuid();
             SessionList = new List<Session>();
@@ -37,6 +37,7 @@ namespace netSharp.Server.Connectivity
             _endpointTimer = new Timer(1000);
             _endpointTimer.Elapsed += EndpointTimerTick;
             _endpointTimer.Enabled = true;
+            _endpointTimer.Start();
         }
 
         public bool IsServer { get; set; }
@@ -50,7 +51,10 @@ namespace netSharp.Server.Connectivity
             _endpointTimer.Stop();
             RemoveAllSessions();
             IsDisposed = true;
-            InternalTcpConnection();
+            if (IsServer)
+            {
+                InternalTcpConnection();
+            }
         }
 
         public void ReadDataAsync(Session session)
@@ -188,7 +192,10 @@ namespace netSharp.Server.Connectivity
 
         private void EndpointTimerTick(object source, ElapsedEventArgs eea)
         {
-            _sessionManager.TimerTick();
+            if (!_sessionManager.IsActive)
+            {
+                _sessionManager.TimerTick();
+            }
         }
 
         public void NewSession(IPEndPoint remoteIpEndpoint)

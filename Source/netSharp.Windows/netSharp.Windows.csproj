@@ -7,8 +7,8 @@
     <ProjectGuid>{5776D090-CAE8-492F-B15A-5530EF7A45CF}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>netSharp.Server</RootNamespace>
-    <AssemblyName>netSharp.Server</AssemblyName>
+    <RootNamespace>netSharp.Windows</RootNamespace>
+    <AssemblyName>netSharp.Windows</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
@@ -64,7 +64,7 @@
     <Compile Include="Events\ServerEvents.cs" />
     <Compile Include="Connectivity\SessionManager.cs" />
     <Compile Include="Connectivity\Session.cs" />
-    <Compile Include="Connectivity\nsEndpoint.cs" />
+    <Compile Include="Connectivity\LocalEndpoint.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\netSharp.Core\netSharp.Core.csproj">

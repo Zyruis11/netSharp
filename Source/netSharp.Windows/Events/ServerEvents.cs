@@ -1,7 +1,7 @@
 ﻿using netSharp.Core.Data;
-using netSharp.Server.Connectivity;
+using netSharp.Windows.Connectivity;
 
-namespace netSharp.Server.Events
+namespace netSharp.Windows.Events
 {
     public class ServerEvents
     {

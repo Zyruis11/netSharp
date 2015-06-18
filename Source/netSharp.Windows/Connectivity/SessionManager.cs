@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace netSharp.Server.Connectivity
+namespace netSharp.Windows.Connectivity
 {
     internal class SessionManager
     {
 
-        public SessionManager(NsEndpoint endpoint)
+        public SessionManager(LocalEndpoint endpoint)
         {
             if (endpoint == null)
             {
@@ -19,19 +19,23 @@ namespace netSharp.Server.Connectivity
 
         public double MaxIdleTime { get; set; }
         public double MinIdleTime { get; set; }
-        public NsEndpoint EndpointContext { get; set; }
+        public LocalEndpoint EndpointContext { get; set; }
+        public bool IsActive { get; set; }
 
         public void TimerTick()
         {
+            IsActive = true;
+
             if (EndpointContext.SessionList.Count == 0)
             {
+                IsActive = false;
                 return;
             }
 
             var sessionsToDispose = new List<Session>();
             
             MaxIdleTime = ScaleMaxIdleTimer(EndpointContext.MaxSessionCount, EndpointContext.SessionList.Count);
-            
+
             lock (EndpointContext.SessionList)
             {
                 foreach (var session in EndpointContext.SessionList)
@@ -46,17 +50,19 @@ namespace netSharp.Server.Connectivity
 
                 if (sessionsToDispose.Count == 0)
                 {
+                    IsActive = false;
                     return;
                 }
 
                 foreach (var session in sessionsToDispose)
                 {
-                    EndpointContext.SessionList.Remove(session);
-                    session.Dispose();
+                    EndpointContext.RemoveSession(session);
                 }
             }
             GC.Collect();
             GC.WaitForPendingFinalizers();
+
+            IsActive = false;
         }
 
         private int ScaleMaxIdleTimer(int maxSessionCount, int currentSessionCount)
