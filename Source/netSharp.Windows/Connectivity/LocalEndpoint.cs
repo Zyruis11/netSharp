@@ -21,7 +21,7 @@ namespace netSharp.Windows.Connectivity
 
         public LocalEndpoint(bool isServer, IPEndPoint localIpEndPoint = null, int maxSessionCount = 10)
         {
-            LocalGuid = ShortGuid.NewShortGuid();
+            LocalGuid = ShortGuidGenerator.NewShortGuid();
             SessionList = new List<Session>();
             MaxSessionCount = maxSessionCount;
             IsServer = isServer;

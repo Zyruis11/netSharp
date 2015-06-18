@@ -25,11 +25,11 @@ namespace Test.WP
     /// </summary>
     public sealed partial class MainPage : Page
     {
-        private StreamSocket clientSocket;
-        //private bool closing = false;
+        private readonly StreamSocket clientSocket;
+        private bool closing = false;
         private bool connected;
         private HostName serverHost;
-        //private string serverHostnameString;
+        private string serverHostnameString;
 
         public MainPage()
         {
@@ -60,27 +60,16 @@ namespace Test.WP
         {
             if (connected)
             {
-                connected = false;
-                statusBox.Text += "Disconnected\n";
-                ConnectBtn.Content = "Connect";
+                statusBox.Text += "Already Connected";
                 return;
             }
 
             serverHost = new HostName(serverHostname.Text);
 
-            try
-            {
-                await clientSocket.ConnectAsync(serverHost, serverPort.Text);
-                connected = true;
-                statusBox.Text += "Connected\n";
-                ConnectBtn.Content = "Disconnect";
-            }
-            catch (Exception exception)
-            {
-                statusBox.Text = exception.Message;
-            }
-            
-            //ReadAsync();
+            await clientSocket.ConnectAsync(serverHost, serverPort.Text);
+            connected = true;
+            statusBox.Text += "Connected!\n";
+            ReadAsync();
         }
 
         private async void ReadAsync()

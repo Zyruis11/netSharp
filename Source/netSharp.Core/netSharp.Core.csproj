@@ -39,7 +39,7 @@
   <ItemGroup>
     <Compile Include="Data\DataStream.cs" />
     <Compile Include="Data\DataStreamFactory.cs" />
-    <Compile Include="Helpers\ShortGuid.cs" />
+    <Compile Include="Helpers\ShortGuidGenerator.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Portable\$(TargetFrameworkVersion)\Microsoft.Portable.CSharp.targets" />
