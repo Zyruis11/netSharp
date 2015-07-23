@@ -11,7 +11,7 @@ namespace Test.Endpoint
     /// </summary>
     public partial class MainWindow : Window
     {
-        private LocalEndpoint _localEndpoint;
+        private netSharpEndpoint _localEndpoint;
         private bool _endPointActive;
         private bool _isServer;
 
@@ -29,14 +29,14 @@ namespace Test.Endpoint
                     case "Server":
                     {
                         var ipEndPoint = new IPEndPoint(IPAddress.Parse("127.0.0.1"), 3000);
-                        _localEndpoint = new LocalEndpoint(true, ipEndPoint, 100);
+                        _localEndpoint = new netSharpEndpoint(true, ipEndPoint, 100);
                         Title = "Server";
                         _isServer = true;
                         break;
                     }
                     case "Client":
                     {
-                        _localEndpoint = new LocalEndpoint(false);
+                        _localEndpoint = new netSharpEndpoint(false);
                         Title = "Client";
                         _isServer = false;
                         break;

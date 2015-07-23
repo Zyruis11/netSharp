@@ -6,27 +6,27 @@ namespace netSharp.Windows.Connectivity
     internal class SessionManager
     {
 
-        public SessionManager(LocalEndpoint endpoint)
+        public SessionManager(netSharpEndpoint endpoint)
         {
             if (endpoint == null)
             {
                 throw new NullReferenceException();
             }
-            EndpointContext = endpoint;
+            EndpointReference = endpoint;
             MaxIdleTime = 900;
             MinIdleTime = 30;
         }
 
         public double MaxIdleTime { get; set; }
         public double MinIdleTime { get; set; }
-        public LocalEndpoint EndpointContext { get; set; }
+        public netSharpEndpoint EndpointReference { get; set; }
         public bool IsActive { get; set; }
 
         public void TimerTick()
         {
             IsActive = true;
 
-            if (EndpointContext.SessionList.Count == 0)
+            if (EndpointReference.SessionList.Count == 0)
             {
                 IsActive = false;
                 return;
@@ -34,11 +34,11 @@ namespace netSharp.Windows.Connectivity
 
             var sessionsToDispose = new List<Session>();
             
-            MaxIdleTime = ScaleMaxIdleTimer(EndpointContext.MaxSessionCount, EndpointContext.SessionList.Count);
+            MaxIdleTime = ScaleMaxIdleTimer(EndpointReference.MaxSessionCount, EndpointReference.SessionList.Count);
 
-            lock (EndpointContext.SessionList)
+            lock (EndpointReference.SessionList)
             {
-                foreach (var session in EndpointContext.SessionList)
+                foreach (var session in EndpointReference.SessionList)
                 {
                     session.IdleTime += 1;
                     session.MaxIdleTime = MaxIdleTime;
@@ -56,7 +56,7 @@ namespace netSharp.Windows.Connectivity
 
                 foreach (var session in sessionsToDispose)
                 {
-                    EndpointContext.RemoveSession(session);
+                    EndpointReference.RemoveSession(session);
                 }
             }
             GC.Collect();

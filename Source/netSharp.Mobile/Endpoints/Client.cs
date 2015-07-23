@@ -11,13 +11,12 @@ namespace netSharp.Mobile.Endpoints
 {
     public class Client
     {
-        private Timer _clientTimer;
         public string ClientGuid { get; set; }
         public List<MobileSession> SessionList { get; set; } 
 
         public Client()
         {
-            ClientGuid = ShortGuid.NewShortGuid();
+            ClientGuid = ShortGuidGenerator.NewShortGuid();
             SessionList = new List<MobileSession>();
         }
 

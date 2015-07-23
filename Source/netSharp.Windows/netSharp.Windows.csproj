@@ -9,8 +9,9 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>netSharp.Windows</RootNamespace>
     <AssemblyName>netSharp.Windows</AssemblyName>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -64,7 +65,7 @@
     <Compile Include="Events\ServerEvents.cs" />
     <Compile Include="Connectivity\SessionManager.cs" />
     <Compile Include="Connectivity\Session.cs" />
-    <Compile Include="Connectivity\LocalEndpoint.cs" />
+    <Compile Include="Connectivity\netSharpEndpoint.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\netSharp.Core\netSharp.Core.csproj">

@@ -12,14 +12,14 @@ using netSharp.Windows.Interfaces;
 
 namespace netSharp.Windows.Connectivity
 {
-    public class LocalEndpoint : IDisposable, IEndpoint
+    public class netSharpEndpoint : IDisposable, IEndpoint
     {
         private readonly Timer _endpointTimer;
         private readonly IPEndPoint _localIpEndPoint;
         private readonly SessionManager _sessionManager;
         private readonly TcpListener _tcpListener;
 
-        public LocalEndpoint(bool isServer, IPEndPoint localIpEndPoint = null, int maxSessionCount = 10)
+        public netSharpEndpoint(bool isServer, IPEndPoint localIpEndPoint = null, int maxSessionCount = 10)
         {
             LocalGuid = ShortGuidGenerator.NewShortGuid();
             SessionList = new List<Session>();
@@ -29,6 +29,9 @@ namespace netSharp.Windows.Connectivity
 
             if (IsServer)
             {
+                if (localIpEndPoint == null)
+                    throw new NullReferenceException("IP Endpoint is Null, cannot instantiate Server.");
+
                 _localIpEndPoint = localIpEndPoint;
                 _tcpListener = new TcpListener(_localIpEndPoint);
                 StartListener();
@@ -87,7 +90,9 @@ namespace netSharp.Windows.Connectivity
 
         public void AddSession(Session session)
         {
-            if (session == null) throw new ArgumentNullException();
+            if (session == null)
+                throw new ArgumentNullException();
+
             lock (SessionList)
             {
                 if (SessionList.Contains(session)) throw new DuplicateNameException();
