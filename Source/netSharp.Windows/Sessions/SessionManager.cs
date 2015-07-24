@@ -1,32 +1,28 @@
 ﻿using System;
 using System.Collections.Generic;
+using netSharp.Endpoint;
 
-namespace netSharp.Windows.Connectivity
+namespace netSharp.Sessions
 {
     internal class SessionManager
     {
 
-        public SessionManager(netSharpEndpoint endpoint)
+        public SessionManager()
         {
-            if (endpoint == null)
-            {
-                throw new NullReferenceException();
-            }
-            EndpointReference = endpoint;
             MaxIdleTime = 900;
             MinIdleTime = 30;
         }
 
         public double MaxIdleTime { get; set; }
         public double MinIdleTime { get; set; }
-        public netSharpEndpoint EndpointReference { get; set; }
+        public BaseEndpoint EndpointReference { get; set; }
         public bool IsActive { get; set; }
 
         public void TimerTick()
         {
             IsActive = true;
 
-            if (EndpointReference.SessionList.Count == 0)
+            if (EndpointReference.SessionDictionary.Count == 0)
             {
                 IsActive = false;
                 return;
@@ -34,18 +30,12 @@ namespace netSharp.Windows.Connectivity
 
             var sessionsToDispose = new List<Session>();
             
-            MaxIdleTime = ScaleMaxIdleTimer(EndpointReference.MaxSessionCount, EndpointReference.SessionList.Count);
+            MaxIdleTime = ScaleMaxIdleTimer(EndpointReference.MaxSessionCount, EndpointReference.SessionDictionary.Count);
 
-            lock (EndpointReference.SessionList)
+            lock (EndpointReference.SessionDictionary)
             {
-                foreach (var session in EndpointReference.SessionList)
+                foreach (var session in EndpointReference.SessionDictionary)
                 {
-                    session.IdleTime += 1;
-                    session.MaxIdleTime = MaxIdleTime;
-                    if (session.IdleTime >= MaxIdleTime)
-                    {
-                        sessionsToDispose.Add(session);
-                    }
                 }
 
                 if (sessionsToDispose.Count == 0)
@@ -59,8 +49,6 @@ namespace netSharp.Windows.Connectivity
                     EndpointReference.RemoveSession(session);
                 }
             }
-            GC.Collect();
-            GC.WaitForPendingFinalizers();
 
             IsActive = false;
         }

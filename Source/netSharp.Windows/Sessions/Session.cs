@@ -2,11 +2,11 @@
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
-using netSharp.Core.Data;
-using netSharp.Windows.Events;
-using netSharp.Windows.Interfaces;
+using netSharp.Data;
+using netSharp.Event_Arguments;
+using netSharp.Interfaces;
 
-namespace netSharp.Windows.Connectivity
+namespace netSharp.Sessions
 {
     public class Session : IDisposable, ISession
     {
@@ -122,20 +122,24 @@ namespace netSharp.Windows.Connectivity
             ReadDataAsync();
         }
 
-        public event EventHandler<ServerEvents> SessionDataRecieved;
+        public event EventHandler<EndpointEvents> SessionDataRecieved;
+        public event EventHandler<EndpointEvents> SessionDataSent;
 
-        protected virtual void EventInvocationWrapper(ServerEvents serverEvents,
-            EventHandler<ServerEvents> eventHandler)
+        public event EventHandler<EndpointEvents> SessionClosedByRemote;
+        public event EventHandler<EndpointEvents> SessionClosedByLocal;
+
+        protected virtual void EventInvocationWrapper(EndpointEvents endpointEvents,
+            EventHandler<EndpointEvents> eventHandler)
         {
             if (eventHandler != null)
             {
-                eventHandler(this, serverEvents);
+                eventHandler(this, endpointEvents);
             }
         }
 
         public void SessionDataRecievedTrigger(DataStream dataStream)
         {
-            EventInvocationWrapper(new ServerEvents(dataStream, this), SessionDataRecieved);
+            EventInvocationWrapper(new EndpointEvents(dataStream, this), SessionDataRecieved);
         }
     }
 }

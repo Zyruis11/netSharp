@@ -7,8 +7,8 @@
     <ProjectGuid>{5776D090-CAE8-492F-B15A-5530EF7A45CF}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>netSharp.Windows</RootNamespace>
-    <AssemblyName>netSharp.Windows</AssemblyName>
+    <RootNamespace>netSharp</RootNamespace>
+    <AssemblyName>netSharp</AssemblyName>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
@@ -59,19 +59,18 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Data\DataStream.cs" />
+    <Compile Include="Data\DataStreamFactory.cs" />
+    <Compile Include="Endpoint\Client.cs" />
+    <Compile Include="Endpoint\Server.cs" />
+    <Compile Include="Other\ShortGuidGenerator.cs" />
     <Compile Include="Interfaces\IEndpoint.cs" />
     <Compile Include="Interfaces\ISession.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Events\ServerEvents.cs" />
-    <Compile Include="Connectivity\SessionManager.cs" />
-    <Compile Include="Connectivity\Session.cs" />
-    <Compile Include="Connectivity\netSharpEndpoint.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\netSharp.Core\netSharp.Core.csproj">
-      <Project>{35d5f727-048b-4277-bf0d-6ba99694ffbf}</Project>
-      <Name>netSharp.Core</Name>
-    </ProjectReference>
+    <Compile Include="Event Arguments\EndPointEvents.cs" />
+    <Compile Include="Sessions\SessionManager.cs" />
+    <Compile Include="Sessions\Session.cs" />
+    <Compile Include="Endpoint\BaseEndpoint.cs" />
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

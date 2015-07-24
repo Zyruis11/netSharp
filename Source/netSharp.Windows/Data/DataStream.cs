@@ -1,5 +1,5 @@
 ﻿
-namespace netSharp.Core.Data
+namespace netSharp.Data
 {
     public class DataStream
     {

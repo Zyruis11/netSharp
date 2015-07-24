@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Net;
 using System.Windows;
-using netSharp.Windows.Connectivity;
-using netSharp.Windows.Events;
+using netSharp.Connectivity;
+using netSharp.Events;
 
 namespace Test.Endpoint
 {

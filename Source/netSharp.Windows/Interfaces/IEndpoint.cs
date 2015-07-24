@@ -1,13 +1,9 @@
-﻿using netSharp.Windows.Connectivity;
+﻿using netSharp.Sessions;
 
-namespace netSharp.Windows.Interfaces
+namespace netSharp.Interfaces
 {
-    public interface IEndpoint
-    {
-        void SendDataAsync(byte[] payloadByteArray, Session session);
-        void ReadDataAsync(Session session);
-        void StartListener();
-        //void StopListener();
+    public interface IBaseEndpoint
+    {    
         void RemoveSession(Session session);
         void AddSession(Session session);
     }

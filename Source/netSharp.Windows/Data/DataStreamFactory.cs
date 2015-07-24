@@ -4,7 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 
-namespace netSharp.Core.Data
+namespace netSharp.Data
 {
     public static class DataStreamFactory
     {

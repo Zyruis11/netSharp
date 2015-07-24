@@ -1,15 +1,15 @@
-﻿using netSharp.Core.Data;
-using netSharp.Windows.Connectivity;
+﻿using netSharp.Data;
+using netSharp.Sessions;
 
-namespace netSharp.Windows.Events
+namespace netSharp.Event_Arguments
 {
-    public class ServerEvents
+    public class EndpointEvents
     {
-        public ServerEvents(DataStream dataStreamArg = null, Session sessionArg = null, string MessageArg = null)
+        public EndpointEvents(DataStream dataStream = null, Session sessionArg = null, string MessageArg = null)
         {
-            if (dataStreamArg  != null)
+            if (dataStream  != null)
             {
-                DataStream = dataStreamArg;
+                DataStream = dataStream;
             }
             if (sessionArg != null)
             {
