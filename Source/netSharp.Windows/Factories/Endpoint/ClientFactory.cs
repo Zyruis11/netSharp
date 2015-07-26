@@ -29,9 +29,8 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF 
 // THE POSSIBILITY OF SUCH DAMAGE.
 // 
-using System;
+
 using System.Net;
-using System.Runtime.InteropServices.ComTypes;
 using netSharp.Configuration;
 using netSharp.Endpoint;
 using netSharp.Factories.Endpoint.Base;
@@ -39,16 +38,13 @@ using netSharp.Sessions;
 
 namespace netSharp.Factories.Endpoint
 {
-    public sealed class ClientFactory: BaseEndpointFactory
+    public sealed class ClientFactory : BaseEndpointFactory
     {
         public Client MakeNew(IPEndPoint _ipEndPoint, ClientConfiguration _clientConfiguration = null)
         {
             if (_clientConfiguration != null)
                 return new Client(new SessionManager(), _ipEndPoint, _clientConfiguration);
-            else
-            {
-                return new Client(new SessionManager(), _ipEndPoint);
-            }
+            return new Client(new SessionManager(), _ipEndPoint);
         }
     }
 }

@@ -29,6 +29,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF 
 // THE POSSIBILITY OF SUCH DAMAGE.
 // 
+
 using System;
 using System.Text;
 
@@ -38,17 +39,17 @@ namespace netSharp.Other
     {
         public static string New()
         {
-            int guidLength = 4;
+            var guidLength = 4;
 
-            string charString = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+            var charString = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 
-            StringBuilder builder = new StringBuilder();
+            var builder = new StringBuilder();
             char @char;
-            Random random = new Random();
+            var random = new Random();
 
-            for (int i = 0; i < guidLength; i++)
+            for (var i = 0; i < guidLength; i++)
             {
-                @char = charString[random.Next(0,charString.Length)];
+                @char = charString[random.Next(0, charString.Length)];
                 builder.Append(@char);
             }
             return builder.ToString();

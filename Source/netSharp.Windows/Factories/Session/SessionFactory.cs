@@ -29,12 +29,12 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF 
 // THE POSSIBILITY OF SUCH DAMAGE.
 // 
+
 using netSharp.Factories.Session.Base;
 
 namespace netSharp.Factories.Session
 {
     public class SessionFactory : BaseSessionFactory
     {
-
     }
 }

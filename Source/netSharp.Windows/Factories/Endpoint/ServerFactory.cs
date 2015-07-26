@@ -29,6 +29,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF 
 // THE POSSIBILITY OF SUCH DAMAGE.
 // 
+
 using System.Net;
 using System.Net.Sockets;
 using netSharp.Configuration;
@@ -44,10 +45,7 @@ namespace netSharp.Factories.Endpoint
         {
             if (_serverConfiguration != null)
                 return new Server(new SessionManager(), _ipEndPoint, new TcpListener(_ipEndPoint), _serverConfiguration);
-            else
-            {
-                return new Server(new SessionManager(), _ipEndPoint, new TcpListener(_ipEndPoint));
-            }
+            return new Server(new SessionManager(), _ipEndPoint, new TcpListener(_ipEndPoint));
         }
     }
 }

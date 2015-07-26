@@ -29,13 +29,10 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF 
 // THE POSSIBILITY OF SUCH DAMAGE.
 // 
+
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net;
 using System.Net.Sockets;
-using System.Text;
-using System.Threading.Tasks;
 using netSharp.Configuration;
 using netSharp.Other;
 using netSharp.Sessions;
@@ -44,14 +41,8 @@ namespace netSharp.Endpoint
 {
     public sealed class Server : BaseEndpoint, IDisposable
     {
-        private TcpListener tcpListener { get; set; }
-        public bool IsListening { get; set; }
-        public int MaxClusterSize { get; set; }
-        public int MaxSessionsPerRemoteEndPoint { get; set; }
-        public int MaxServerUniqueSessions { get; set; }
-        public int MaxUniqueClusters { get; set; }
-
-        public Server(SessionManager _sessionManager, IPEndPoint _ipEndPoint, TcpListener _tcpListener, ServerConfiguration _serverConfiguration = null)
+        public Server(SessionManager _sessionManager, IPEndPoint _ipEndPoint, TcpListener _tcpListener,
+            ServerConfiguration _serverConfiguration = null)
         {
             sessionManager = _sessionManager;
             ipEndPoint = _ipEndPoint;
@@ -61,6 +52,13 @@ namespace netSharp.Endpoint
 
             Guid = ShortGuidGenerator.New();
         }
+
+        private TcpListener tcpListener { get; }
+        public bool IsListening { get; set; }
+        public int MaxClusterSize { get; set; }
+        public int MaxSessionsPerRemoteEndPoint { get; set; }
+        public int MaxServerUniqueSessions { get; set; }
+        public int MaxUniqueClusters { get; set; }
 
         public void Dispose()
         {
@@ -76,11 +74,11 @@ namespace netSharp.Endpoint
         public void StopListener()
         {
             IsListening = false;
-            tcpListener.Stop();          
+            tcpListener.Stop();
         }
 
         private async void SessionListener()
-        {     
+        {
             while (IsListening)
             {
                 var tcpClient = await tcpListener.AcceptTcpClientAsync();

@@ -29,6 +29,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF 
 // THE POSSIBILITY OF SUCH DAMAGE.
 // 
+
 using netSharp.Configuration.Base;
 
 namespace netSharp.Configuration
@@ -36,27 +37,28 @@ namespace netSharp.Configuration
     public sealed class ServerConfiguration : BaseConfiguration
     {
         /// <summary>
-        /// Gets or sets the maximum number of peers allowed per server cluster.
+        ///     Gets or sets the maximum number of peers allowed per server cluster.
         /// </summary>
         public int MaxClusterSize { get; set; } = 2;
 
         /// <summary>
-        /// Gets or sets the maximum number of clusters that the Endpoint may belong to.
+        ///     Gets or sets the maximum number of clusters that the Endpoint may belong to.
         /// </summary>
         public int MaxUniqueClusters { get; set; } = 1;
 
         /// <summary>
-        /// Gets or sets the maximum number of connections allowed to unique servers.
+        ///     Gets or sets the maximum number of connections allowed to unique servers.
         /// </summary>
         public int MaxServerUniqueConnections { get; set; } = 10;
 
         /// <summary>
-        /// Gets or sets the maximum number of connections allowed to a single server
+        ///     Gets or sets the maximum number of connections allowed to a single server
         /// </summary>
         public int MaxSessionsPerRemoteEndPoint { get; set; } = 2;
 
         /// <summary>
-        /// Override of the base MaxSessions property, by default this allows the server to accept 10x the connections of a client.
+        ///     Override of the base MaxSessions property, by default this allows the server to accept 10x the connections of a
+        ///     client.
         /// </summary>
         public override int MaxSessions { get; set; } = 100;
     }

@@ -29,6 +29,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF 
 // THE POSSIBILITY OF SUCH DAMAGE.
 // 
+
 using System;
 using System.Net;
 using System.Net.Sockets;
@@ -112,7 +113,6 @@ namespace netSharp.Sessions
                     var networkStream = tcpClient.GetStream();
                     await networkStream.WriteAsync(new byte[100], 0, 100); //TODO: Fix this.
                     SessionDataSentTrigger();
-                    return;
                 }
                 catch (Exception _exception)
                 {

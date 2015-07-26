@@ -29,6 +29,7 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF 
 // THE POSSIBILITY OF SUCH DAMAGE.
 // 
+
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -50,7 +51,7 @@ namespace netSharp.Factories.DataStream
 
                 var guidBuffer = new byte[4];
                 memStream.Read(guidBuffer, 0, guidBuffer.Length);
-                stream.Guid = Encoding.UTF8.GetString(guidBuffer,0,4);
+                stream.Guid = Encoding.UTF8.GetString(guidBuffer, 0, 4);
 
                 var payloadTypeBuffer = new byte[2];
                 memStream.Read(payloadTypeBuffer, 0, payloadTypeBuffer.Length);
@@ -64,7 +65,7 @@ namespace netSharp.Factories.DataStream
             var byteArrayList = new List<byte[]>();
 
             byteArrayList.Add(BitConverter.GetBytes(Convert.ToInt32(_dataStream.PayloadByteArray.Length)));
-                // Add payloadLength to list
+            // Add payloadLength to list
             byteArrayList.Add(Encoding.UTF8.GetBytes(_dataStream.Guid)); // Add GUID to list
             byteArrayList.Add(BitConverter.GetBytes(_dataStream.PayloadType)); // Add payloadType to list
             byteArrayList.Add(_dataStream.PayloadByteArray); // Add payload to list

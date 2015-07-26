@@ -29,33 +29,34 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF 
 // THE POSSIBILITY OF SUCH DAMAGE.
 // 
+
 namespace netSharp.Configuration.Base
 {
     public class BaseConfiguration
     {
         /// <summary>
-        /// Gets or sets the maximum length of time in seconds that an idle session will be maintained.
+        ///     Gets or sets the maximum length of time in seconds that an idle session will be maintained.
         /// </summary>
         public int MaxIdleTime { get; set; } = 600;
 
         /// <summary>
-        /// Gets or sets the minimum length of time in secodns that an idle session will be maintained.
+        ///     Gets or sets the minimum length of time in secodns that an idle session will be maintained.
         /// </summary>
         public int MinIdleTime { get; set; } = 30;
 
         /// <summary>
-        /// Gets or sets the maximum number of sessions that will be allowed to connect.
+        ///     Gets or sets the maximum number of sessions that will be allowed to connect.
         /// </summary>
         public virtual int MaxSessions { get; set; } = 10;
 
         /// <summary>
-        /// Gets or sets the bool allowing the Endpoint's Session Manager to use keepalives during session maintenance.
-        /// Note: Keepalives do not reset the Idle timer when received, a session using Keepalives will still timeout.
+        ///     Gets or sets the bool allowing the Endpoint's Session Manager to use keepalives during session maintenance.
+        ///     Note: Keepalives do not reset the Idle timer when received, a session using Keepalives will still timeout.
         /// </summary>
         public bool UseKeepalives { get; set; } = true;
 
         /// <summary>
-        /// Gets or sets the interval that the Endpoint's Session Manager will evaluate the Endpoint's SessionDictionary.
+        ///     Gets or sets the interval that the Endpoint's Session Manager will evaluate the Endpoint's SessionDictionary.
         /// </summary>
         public int SessionManagerIntervalMilliseconds { get; set; } = 1000;
     }

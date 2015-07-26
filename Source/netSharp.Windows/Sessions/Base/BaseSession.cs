@@ -29,11 +29,11 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF 
 // THE POSSIBILITY OF SUCH DAMAGE.
 // 
+
 using System;
 using System.Net.Sockets;
 using System.Threading;
 using netSharp.Events;
-using netSharp.Interfaces;
 
 namespace netSharp.Sessions.Base
 {
@@ -53,11 +53,16 @@ namespace netSharp.Sessions.Base
         public string LocalEndpointGuid { get; set; }
         public double IdleTime { get; set; }
         public double MaxIdleTime { get; set; }
-
         public TcpClient tcpClient { get; set; }
         public CancellationToken cancellationToken { get; set; }
         public CancellationTokenSource cancellationTokenSource { get; set; }
         public string SessionErrorMessage { get; set; }
+
+        public void Dispose()
+        {
+            cancellationTokenSource.Cancel();
+            IsDisposed = true;
+        }
 
         public CancellationToken GetCancellationToken()
         {
@@ -100,11 +105,5 @@ namespace netSharp.Sessions.Base
         }
 
         #endregion
-
-        public void Dispose()
-        {
-            cancellationTokenSource.Cancel();
-            IsDisposed = true;
-        }
     }
 }

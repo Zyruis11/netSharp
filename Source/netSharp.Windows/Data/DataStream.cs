@@ -52,7 +52,7 @@ namespace netSharp.Data
         }
 
         /// <summary>
-        /// Default constructor    
+        ///     Default constructor
         /// </summary>
         public DataStream()
         {
