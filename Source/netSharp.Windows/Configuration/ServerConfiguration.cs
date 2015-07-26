@@ -29,29 +29,35 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF 
 // THE POSSIBILITY OF SUCH DAMAGE.
 // 
-using System;
-using System.Text;
+using netSharp.Configuration.Base;
 
-namespace netSharp.Other
+namespace netSharp.Configuration
 {
-    public static class ShortGuidGenerator
+    public sealed class ServerConfiguration : BaseConfiguration
     {
-        public static string New()
-        {
-            int guidLength = 4;
+        /// <summary>
+        /// Gets or sets the maximum number of peers allowed per server cluster.
+        /// </summary>
+        public int MaxClusterSize { get; set; } = 2;
 
-            string charString = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+        /// <summary>
+        /// Gets or sets the maximum number of clusters that the Endpoint may belong to.
+        /// </summary>
+        public int MaxUniqueClusters { get; set; } = 1;
 
-            StringBuilder builder = new StringBuilder();
-            char @char;
-            Random random = new Random();
+        /// <summary>
+        /// Gets or sets the maximum number of connections allowed to unique servers.
+        /// </summary>
+        public int MaxServerUniqueConnections { get; set; } = 10;
 
-            for (int i = 0; i < guidLength; i++)
-            {
-                @char = charString[random.Next(0,charString.Length)];
-                builder.Append(@char);
-            }
-            return builder.ToString();
-        }
+        /// <summary>
+        /// Gets or sets the maximum number of connections allowed to a single server
+        /// </summary>
+        public int MaxSessionsPerRemoteEndPoint { get; set; } = 2;
+
+        /// <summary>
+        /// Override of the base MaxSessions property, by default this allows the server to accept 10x the connections of a client.
+        /// </summary>
+        public override int MaxSessions { get; set; } = 100;
     }
 }

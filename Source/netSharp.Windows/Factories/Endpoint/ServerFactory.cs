@@ -29,29 +29,25 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF 
 // THE POSSIBILITY OF SUCH DAMAGE.
 // 
-using System;
-using System.Text;
+using System.Net;
+using System.Net.Sockets;
+using netSharp.Configuration;
+using netSharp.Endpoint;
+using netSharp.Factories.Endpoint.Base;
+using netSharp.Sessions;
 
-namespace netSharp.Other
+namespace netSharp.Factories.Endpoint
 {
-    public static class ShortGuidGenerator
+    public sealed class ServerFactory : BaseEndpointFactory
     {
-        public static string New()
+        public Server MakeNew(IPEndPoint _ipEndPoint, ServerConfiguration _serverConfiguration = null)
         {
-            int guidLength = 4;
-
-            string charString = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-
-            StringBuilder builder = new StringBuilder();
-            char @char;
-            Random random = new Random();
-
-            for (int i = 0; i < guidLength; i++)
+            if (_serverConfiguration != null)
+                return new Server(new SessionManager(), _ipEndPoint, new TcpListener(_ipEndPoint), _serverConfiguration);
+            else
             {
-                @char = charString[random.Next(0,charString.Length)];
-                builder.Append(@char);
+                return new Server(new SessionManager(), _ipEndPoint, new TcpListener(_ipEndPoint));
             }
-            return builder.ToString();
         }
     }
 }

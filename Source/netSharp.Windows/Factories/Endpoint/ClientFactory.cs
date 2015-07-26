@@ -30,28 +30,25 @@
 // THE POSSIBILITY OF SUCH DAMAGE.
 // 
 using System;
-using System.Text;
+using System.Net;
+using System.Runtime.InteropServices.ComTypes;
+using netSharp.Configuration;
+using netSharp.Endpoint;
+using netSharp.Factories.Endpoint.Base;
+using netSharp.Sessions;
 
-namespace netSharp.Other
+namespace netSharp.Factories.Endpoint
 {
-    public static class ShortGuidGenerator
+    public sealed class ClientFactory: BaseEndpointFactory
     {
-        public static string New()
+        public Client MakeNew(IPEndPoint _ipEndPoint, ClientConfiguration _clientConfiguration = null)
         {
-            int guidLength = 4;
-
-            string charString = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-
-            StringBuilder builder = new StringBuilder();
-            char @char;
-            Random random = new Random();
-
-            for (int i = 0; i < guidLength; i++)
+            if (_clientConfiguration != null)
+                return new Client(new SessionManager(), _ipEndPoint, _clientConfiguration);
+            else
             {
-                @char = charString[random.Next(0,charString.Length)];
-                builder.Append(@char);
+                return new Client(new SessionManager(), _ipEndPoint);
             }
-            return builder.ToString();
         }
     }
 }

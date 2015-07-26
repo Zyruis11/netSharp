@@ -1,137 +1,192 @@
-﻿using System;
+﻿// Copyright (c) 2015 Daniel Elps <daniel.j.elps@gmail.com>
+// 
+// All rights reserved.
+// 
+// Redistribution and use of netSharp in source and binary forms, with or without 
+// modification, are permitted provided that the following conditions 
+// are met:
+// 
+// * Redistributions of source code must retain the above copyright notice, 
+//   this list of conditions and the following disclaimer. 
+// 
+// * Redistributions in binary form must reproduce the above copyright notice,
+//   this list of conditions and the following disclaimer in the documentation
+//   and/or other materials provided with the distribution. 
+// 
+// * Neither the name of Daniel Elps nor the names of its contributors may be 
+//   used to endorse or promote products derived from this software without 
+//   specific prior written permission. 
+// 
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE 
+// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE 
+// ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE 
+// LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR 
+// CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+// SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS 
+// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN 
+// CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
+// ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF 
+// THE POSSIBILITY OF SUCH DAMAGE.
+// 
+using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Timers;
-using netSharp.Data;
-using netSharp.Event_Arguments;
-using netSharp.Other;
+using netSharp.Events;
 using netSharp.Sessions;
 
 namespace netSharp.Endpoint
 {
-    /// <summary>
-    /// WARNING: Don't use this class directly, use either Client or Server depending upon your desired functionality.
-    /// This is the base class from which the Client and Server classes inherit.
-    /// </summary>
     public class BaseEndpoint
     {
-        private readonly IPEndPoint _localIpEndPoint;
-        private SessionManager _sessionManager { get; } = new SessionManager();
-        private Timer EndPointTimer { get; } = new Timer(1000);
-        public string LocalGuid { get; } = ShortGuidGenerator.NewShortGuid();
-        public Dictionary<string, Session> SessionDictionary { get; } = new Dictionary<string, Session>();
-        public bool IsDisposed { get; set; }
-        public int MaxSessionCount { get; set; } = 1000;
+        public enum EndpointState
+        {
+            Active,
+            Suspended,
+            Inactive
+        }
+
+        public enum ListeningState
+        {
+            Listening,
+            NotListening
+        }
+
+        public BaseEndpoint()
+        {
+            throw new ArgumentException("Don't instatiate this class directly, use one of the child classes.");
+        }
+
+        #region Private Properties
+
+        private Timer endPointTimer { get; set; }
+        private Dictionary<string, Session> sessionDictionary { get; set; }
+
+        #endregion
+
+        #region Public Properties
+
+        protected bool IsDisposed { get; set; }
+        protected string Guid { get; set; }
+        protected int MaxSessions { get; set; }
+        protected IPEndPoint ipEndPoint { get; set; }
+        protected SessionManager sessionManager { get; set; }
+        protected int MaxIdleTime { get; set; }
+        protected int MinIdleTime { get; set; }
+        protected bool UseKeepalives { get; set; }
+        protected int SessionManagerIntervalMilliseconds { get; set; }
+
+        #endregion
+
         //TODO: Invoke Session Manager on Timer Tick
 
+        #region DataCommands
 
-        public void ReadDataAsync(Session session)
+        public void ReadDataAsync(Session _session)
         {
-            if (session == null)
-            {
+            if (_session == null)
                 throw new NullReferenceException();
-            }
-
-            session.ReadDataAsync();
+            _session.ReadDataAsync();
         }
 
-        public void SendDataAsync(byte[] payloadByteArray, Session session)
+        public void SendDataAsync(byte[] _payloadByteArray, Session _session)
         {
-            if (payloadByteArray == null)
-            {
+            if (_payloadByteArray == null)
                 throw new NullReferenceException();
-            }
-            var dataStream = new DataStream(LocalGuid, 10, payloadByteArray);
+            _session.SendDataAsync();
         }
 
-        #region Session Logic
+        #endregion
 
-        public void RemoveSession(Session session)
+        #region Session Commands
+
+        public void RemoveSession(Session _session)
         {
-            if (session == null) throw new ArgumentNullException();
-            lock (SessionDictionary)
+            if (_session == null) throw new ArgumentNullException();
+            lock (sessionDictionary)
             {
-                session.SessionDataRecieved -= HandleSessionDataRecieved;
-                session.Dispose();
+                _session.SessionDataRecieved -= HandleSessionDataRecieved;
+                _session.Dispose();
                 SessionRemovedTrigger();
             }
         }
 
-        public void AddSession(Session session)
+        public void AddSession(Session _session)
         {
-            if (session == null)
+            if (_session == null)
                 throw new ArgumentNullException();
 
-            lock (SessionDictionary)
+            lock (sessionDictionary)
             {
-                session.SessionDataRecieved += HandleSessionDataRecieved; // Subscribe to the session event handlers
-                session.SessionDataSent
+                _session.SessionDataRecieved += HandleSessionDataRecieved; // Subscribe to the session event handlers
+                //session.SessionDataSent
                 //TODO: Add the session to the dictionary, using the local guid recieved from the remote endpoint.
                 SessionCreatedTrigger();
             }
         }
 
-        public void NewSession(IPEndPoint remoteIpEndpoint)
+        public void NewSession(IPEndPoint _remoteIpEndpoint)
         {
-            var session = new Session(remoteIpEndpoint);
+            var session = new Session(_remoteIpEndpoint);
             AddSession(session);
         }
 
         #endregion
-        
-        #region Events
 
-        public event EventHandler<EndpointEvents> SessionRemoved;
-        public event EventHandler<EndpointEvents> SessionCreated;
-        public event EventHandler<EndpointEvents> SessionDataRecieved;
-        public event EventHandler<EndpointEvents> SessionLost;
+        #region Endpoint Events
 
-        // Event Handler-Trigger Binding
-        protected virtual void EventInvocationWrapper(EndpointEvents netSharpEventArgs,
-            EventHandler<EndpointEvents> eventHandler)
+        public event EventHandler<EndpointEvent> SessionRemoved;
+        public event EventHandler<EndpointEvent> SessionCreated;
+        public event EventHandler<EndpointEvent> SessionDataRecieved;
+        public event EventHandler<EndpointEvent> SessionStateChange;
+        public event EventHandler<EndpointEvent> EndpointStateChange;
+
+        protected virtual void TriggerToEventHelper(EndpointEvent _endPointEvent,
+            EventHandler<EndpointEvent> _eventHandler)
         {
-            if (eventHandler != null)
-            {
-                eventHandler(this, netSharpEventArgs);
-            }
+            _eventHandler?.Invoke(this, _endPointEvent);
         }
 
         public void SessionCreatedTrigger()
         {
-            EventInvocationWrapper(new EndpointEvents(), SessionCreated);
+            TriggerToEventHelper(new EndpointEvent("SessionCreated"), SessionCreated);
         }
 
         public void SessionRemovedTrigger()
         {
-            EventInvocationWrapper(new EndpointEvents(), SessionRemoved);
+            TriggerToEventHelper(new EndpointEvent("SessionRemoved"), SessionRemoved);
         }
 
-        public void SessionDataReceivedTrigger(DataStream dataStream)
+        public void SessionDataReceivedTrigger()
         {
-            EventInvocationWrapper(new EndpointEvents(dataStream), SessionDataRecieved);
+            TriggerToEventHelper(new EndpointEvent("SessionDataRecieved"), SessionDataRecieved);
         }
 
-
-        public void HandleSessionDataRecieved(object sender, EndpointEvents e)
+        public void SessionStateChangeTrigger()
         {
-            e.SessionReference.IdleTime = 0;
-
-            if (e.SessionReference.RemoteEndpointGuid == "notset")
-            {
-                e.SessionReference.RemoteEndpointGuid = e.DataStream.Guid;
-            }
-
-            //TODO: Handle different types of data more elegantly
+            TriggerToEventHelper(new EndpointEvent("SessionStateChange"), SessionStateChange);
         }
 
-        public void HandleSessionDataSent(object sender, EndpointEvents e)
+        public void EndPointStateChangeTrigger()
+        {
+            TriggerToEventHelper(new EndpointEvent("EndpointStateChnage"), EndpointStateChange);
+        }
+
+        public void HandleSessionDataRecieved(object _sender, EndpointEvent _e)
+        {
+            //TODO: Route netSharp protocol data and framework user data seperately
+        }
+
+        public void HandleSessionDataSent(object _sender, EndpointEvent _e)
         {
             throw new NotImplementedException();
         }
 
-
-
-
+        public void HandleSessionStateChange()
+        {
+            throw new NotImplementedException();
+        }
 
         #endregion
     }

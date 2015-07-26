@@ -59,15 +59,25 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Configuration\Base\BaseConfiguration.cs" />
+    <Compile Include="Configuration\ClientConfiguration.cs" />
+    <Compile Include="Configuration\ServerConfiguration.cs" />
     <Compile Include="Data\DataStream.cs" />
-    <Compile Include="Data\DataStreamFactory.cs" />
+    <Compile Include="Events\BaseEvent.cs" />
+    <Compile Include="Factories\DataStream\DataStreamFactory.cs" />
     <Compile Include="Endpoint\Client.cs" />
     <Compile Include="Endpoint\Server.cs" />
+    <Compile Include="Factories\Endpoint\Base\BaseEndpointFactory.cs" />
+    <Compile Include="Factories\Endpoint\ClientFactory.cs" />
+    <Compile Include="Factories\Endpoint\ServerFactory.cs" />
+    <Compile Include="Factories\Session\Base\BaseSessionFactory.cs" />
+    <Compile Include="Factories\Session\SessionFactory.cs" />
     <Compile Include="Other\ShortGuidGenerator.cs" />
     <Compile Include="Interfaces\IEndpoint.cs" />
     <Compile Include="Interfaces\ISession.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Event Arguments\EndPointEvents.cs" />
+    <Compile Include="Events\EndpointEvent.cs" />
+    <Compile Include="Sessions\Base\BaseSession.cs" />
     <Compile Include="Sessions\SessionManager.cs" />
     <Compile Include="Sessions\Session.cs" />
     <Compile Include="Endpoint\BaseEndpoint.cs" />

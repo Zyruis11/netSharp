@@ -1,145 +1,135 @@
-﻿using System;
+﻿// Copyright (c) 2015 Daniel Elps <daniel.j.elps@gmail.com>
+// 
+// All rights reserved.
+// 
+// Redistribution and use of netSharp in source and binary forms, with or without 
+// modification, are permitted provided that the following conditions 
+// are met:
+// 
+// * Redistributions of source code must retain the above copyright notice, 
+//   this list of conditions and the following disclaimer. 
+// 
+// * Redistributions in binary form must reproduce the above copyright notice,
+//   this list of conditions and the following disclaimer in the documentation
+//   and/or other materials provided with the distribution. 
+// 
+// * Neither the name of Daniel Elps nor the names of its contributors may be 
+//   used to endorse or promote products derived from this software without 
+//   specific prior written permission. 
+// 
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE 
+// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE 
+// ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE 
+// LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR 
+// CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+// SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS 
+// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN 
+// CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
+// ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF 
+// THE POSSIBILITY OF SUCH DAMAGE.
+// 
+using System;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
-using netSharp.Data;
-using netSharp.Event_Arguments;
-using netSharp.Interfaces;
+using netSharp.Factories.DataStream;
+using netSharp.Sessions.Base;
 
 namespace netSharp.Sessions
 {
-    public class Session : IDisposable, ISession
+    public sealed class Session : BaseSession
     {
-        private readonly TcpClient _tcpClient;
-        private CancellationToken _asyncCancellationToken;
-        private NetworkStream _networkStream;
-        private CancellationTokenSource ctSource;
-
-        public Session(TcpClient tcpClient)
+        public Session(TcpClient _tcpClient)
         {
-            _tcpClient = tcpClient;
+            tcpClient = _tcpClient;
             Initialize();
         }
 
-        public Session(IPEndPoint ipEndPoint)
+        public Session(IPEndPoint _ipEndPoint)
         {
-            _tcpClient = new TcpClient();
-            _tcpClient.Connect(ipEndPoint);
+            tcpClient = new TcpClient();
+            tcpClient.Connect(_ipEndPoint);
             Initialize();
-        }
-
-        public bool IsDisposed { get; set; }
-        public string RemoteEndpointGuid { get; set; }
-        public string LocalEndpointGuid { get; set; }
-        public double IdleTime { get; set; }
-        public double MaxIdleTime { get; set; }
-
-        public void Dispose()
-        {
-            ctSource.Cancel();
-            IsDisposed = true;
         }
 
         public async void ReadDataAsync()
         {
-            _networkStream = _tcpClient.GetStream();
-
-            while (!IsDisposed)
+            while (!cancellationToken.IsCancellationRequested)
             {
+                var networkStream = tcpClient.GetStream();
                 var protocolInfoBuffer = new byte[10];
                 var initialBytesRead = 0;
 
-
                 initialBytesRead =
-                    await
-                        _networkStream.ReadAsync(protocolInfoBuffer, 0, protocolInfoBuffer.Length,
-                            _asyncCancellationToken);
+                    await networkStream.ReadAsync(protocolInfoBuffer, 0, protocolInfoBuffer.Length, cancellationToken);
 
-
-                if (_asyncCancellationToken.IsCancellationRequested)
+                if (!cancellationToken.IsCancellationRequested)
                 {
-                    break;
-                }
+                    var dataStream = DataStreamFactory.InitializeStreamObject(protocolInfoBuffer);
 
-                if (initialBytesRead == 0)
-                {
-                    IdleTime = MaxIdleTime;
-                    break;
-                }
+                    var payloadBytesRead = 0;
+                    var payloadBytesRemaining = dataStream.PayloadLength;
+                    dataStream.PayloadByteArray = new byte[dataStream.PayloadLength];
 
-                var dataStream = DataStreamFactory.InitializeStreamObject(protocolInfoBuffer);
-
-                var payloadBytesRead = 0;
-                var payloadBytesRemaining = dataStream.PayloadLength;
-                dataStream.PayloadByteArray = new byte[dataStream.PayloadLength];
-
-                while (payloadBytesRead < dataStream.PayloadLength)
-                {
-                    try
+                    while (payloadBytesRead < dataStream.PayloadLength)
                     {
-                        payloadBytesRead +=
-                            await
-                                _networkStream.ReadAsync(
-                                    dataStream.PayloadByteArray, 0,
-                                    payloadBytesRemaining, _asyncCancellationToken);
-                    }
-                    catch
-                    {
-                        break;
-                    }
+                        try
+                        {
+                            payloadBytesRead +=
+                                await
+                                    networkStream.ReadAsync(dataStream.PayloadByteArray, 0, payloadBytesRemaining,
+                                        cancellationToken);
+                        }
+                        catch
+                        {
+                            break;
+                        }
 
-                    if (payloadBytesRead == 0)
-                    {
-                        IdleTime = MaxIdleTime;
-                        return;
+                        if (payloadBytesRead == 0)
+                        {
+                            IdleTime = MaxIdleTime;
+                            return;
+                        }
+                        payloadBytesRemaining -= payloadBytesRead;
                     }
-
-                    payloadBytesRemaining -= payloadBytesRead;
+                    SessionDataRecievedTrigger();
                 }
-
-                SessionDataRecievedTrigger(dataStream);
             }
 
-            if (_asyncCancellationToken.IsCancellationRequested)
+            if (cancellationToken.IsCancellationRequested)
             {
-                _networkStream.Close();
-                _tcpClient.Close();
+                tcpClient.Close();
             }
         }
 
-        public async void SendDataAsync(DataStream dataStream)
+        public async void SendDataAsync()
         {
-            var byteArray = DataStreamFactory.GetStreamByteArray(dataStream);
-            await
-                _networkStream.WriteAsync(byteArray, 0, byteArray.Length,
-                    _asyncCancellationToken);
+            if (tcpClient.Connected)
+            {
+                try
+                {
+                    var networkStream = tcpClient.GetStream();
+                    await networkStream.WriteAsync(new byte[100], 0, 100); //TODO: Fix this.
+                    SessionDataSentTrigger();
+                    return;
+                }
+                catch (Exception _exception)
+                {
+                    SessionErrorTrigger(_exception.Message);
+                }
+            }
+            else
+            {
+                SessionErrorTrigger("Session is not connected.");
+            }
         }
 
         private void Initialize()
         {
-            ctSource = new CancellationTokenSource();
-            _asyncCancellationToken = ctSource.Token;
+            cancellationTokenSource = new CancellationTokenSource();
+            cancellationToken = cancellationTokenSource.Token;
             ReadDataAsync();
-        }
-
-        public event EventHandler<EndpointEvents> SessionDataRecieved;
-        public event EventHandler<EndpointEvents> SessionDataSent;
-
-        public event EventHandler<EndpointEvents> SessionClosedByRemote;
-        public event EventHandler<EndpointEvents> SessionClosedByLocal;
-
-        protected virtual void EventInvocationWrapper(EndpointEvents endpointEvents,
-            EventHandler<EndpointEvents> eventHandler)
-        {
-            if (eventHandler != null)
-            {
-                eventHandler(this, endpointEvents);
-            }
-        }
-
-        public void SessionDataRecievedTrigger(DataStream dataStream)
-        {
-            EventInvocationWrapper(new EndpointEvents(dataStream, this), SessionDataRecieved);
         }
     }
 }
