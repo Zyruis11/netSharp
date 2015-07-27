@@ -1,14 +1,14 @@
-netSharp Documentation
+# netSharp Documentation
 
-Summary
+## Summary
 
 netSharp is intended to be a highly scalable network communications framework with an easy to use API that enables users to easily add scalable, intelligent networking to any .NET 4.6 project.
 
-Architecture
+### Architecture
 
 netSharp uses non-blocking I/O along with an event-driven architecture to make high scalability an intrinsic attribute of the framework. netSharp takes some inspiration from Node.js in that it is designed for a similar purpose, however it is designed with client-server and peer to peer TCP in mind and I’m also using it as a learning experience.
 
-Object Model
+### Object Model
 
 netSharp creates Endpoints, Endpoints connect to each other via Sessions and send binary data with a netSharp header. Binary payloads are delivered directly to and from the client application by calling a public Endpoint method and referencing a Session. Session references are stored in a dictionary key value store for fast lookups.
 
@@ -16,7 +16,7 @@ Endpoints use a Session Manager that performs tasks such as session timeout, ses
 
 All Endpoints and Sessions are created using a Factory pattern, when the factory pattern is called, a configuration parameter can be passed to the new object if other than default settings are desired.
 
-Session Timeout Scaling
+### Session Timeout Scaling
 
 In the current implementation, an endpoint can take advantage of the Session Timeout Scaling algorithm, this algorithm uses an adaptive max idle timer to manage server load. As the session count increases, max idle time is decreased for all sessions.
 
