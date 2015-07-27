@@ -28,7 +28,7 @@
 // CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF 
 // THE POSSIBILITY OF SUCH DAMAGE.
-//
+// 
 
 namespace netSharp.Configuration
 {
@@ -43,14 +43,17 @@ namespace netSharp.Configuration
         public int MaxReconnectAttempts { get; set; } = 5;
 
         /// <summary>
-        ///     Gets or sets the length of time that the reconnect counter will wait before resetting to 0. If reconnect attempts go
-        ///     over the MaxReconnectAttempts interval before this value reaches 0, the session will be marked Closed and disposed by
+        ///     Gets or sets the length of time that the reconnect counter will wait before resetting to 0. If reconnect attempts
+        ///     go
+        ///     over the MaxReconnectAttempts interval before this value reaches 0, the session will be marked Closed and disposed
+        ///     by
         ///     the session manager.
         /// </summary>
         public int ReconnectionCounterResetInterval { get; set; } = 30;
 
         /// <summary>
-        ///     Gets or sets the length of time that the Session will attempt to connect or reconnect to the remote endpoint before timing
+        ///     Gets or sets the length of time that the Session will attempt to connect or reconnect to the remote endpoint before
+        ///     timing
         ///     out and marking itself as Closed.
         /// </summary>
         public int ConnectionTimeout { get; set; } = 2500;
@@ -67,13 +70,15 @@ namespace netSharp.Configuration
         public int KeepaliveSendInterval { get; set; } = 15;
 
         /// <summary>
-        ///     Gets or sets the time that the session will go without recieving keepalives from the remote peer before marking itself as closed.
+        ///     Gets or sets the time that the session will go without recieving keepalives from the remote peer before marking
+        ///     itself as closed.
         ///     Only used if keepalives are enabled.
         /// </summary>
         public int KeepaliveDeadTime { get; set; } = 60;
 
         /// <summary>
-        ///     Gets or sets the maximum number of members allowed in the session KeyValue store, this KVS contains recieved messages and message ID's.
+        ///     Gets or sets the maximum number of members allowed in the session KeyValue store, this KVS contains recieved
+        ///     messages and message ID's.
         /// </summary>
         public int MaxDataKeyValueStoreDepth { get; set; } = 10;
 

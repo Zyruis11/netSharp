@@ -36,8 +36,5 @@ namespace netSharp.Configuration
 {
     public sealed class ClientConfiguration : BaseEndpointConfiguration
     {
-        //TODO: There are currently no unique properties or methods for the client configuration however
-        //TODO: the ClientConfiguration class has been created to allow future additions to be non-breaking
-        //TODO: changes to API users.
     }
 }

@@ -54,11 +54,6 @@ namespace netSharp.Endpoint
             NotListening
         }
 
-        public BaseEndpoint()
-        {
-
-        }
-
         #region Private Properties
 
         private Timer endPointTimer { get; set; }
@@ -129,8 +124,8 @@ namespace netSharp.Endpoint
 
         public void NewSession(IPEndPoint _remoteIpEndpoint)
         {
-            var session = new Session(_remoteIpEndpoint);
-            AddSession(session);
+            //var session = new Session(_remoteIpEndpoint); //TODO: Implement session factory here.
+            //AddSession(session);
         }
 
         #endregion

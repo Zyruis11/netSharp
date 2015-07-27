@@ -30,8 +30,6 @@
 // THE POSSIBILITY OF SUCH DAMAGE.
 // 
 
-//TODO: Complete configuration file implementation including methods that allow the export of a programatically generated configuration for future use.
-
 using System;
 
 namespace netSharp.Configuration.Base
@@ -39,6 +37,7 @@ namespace netSharp.Configuration.Base
     public class BaseEndpointConfiguration
     {
         #region Properties
+
         /// <summary>
         ///     Gets or sets the maximum length of time in seconds that an idle session will be maintained.
         /// </summary>
@@ -72,6 +71,7 @@ namespace netSharp.Configuration.Base
         #endregion
 
         #region Methods
+
         /// <summary>
         ///     Accepts a string containing the full path to a configuration file and passes it to the configuration file parser
         ///     catches any execptions thrown by the Parser and returns false if they occur.
@@ -104,7 +104,8 @@ namespace netSharp.Configuration.Base
         {
             //TODO: Parse configuration file and set configuration parameters. Return true or false based on results of the parse attempt.
             return true; // Temporarily returning true to supress any compiler errors
-        } 
+        }
+
         #endregion
     }
 }

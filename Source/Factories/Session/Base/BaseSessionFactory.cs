@@ -30,32 +30,9 @@
 // THE POSSIBILITY OF SUCH DAMAGE.
 // 
 
-using System;
-using System.Net;
-using System.Net.Sockets;
-using System.Threading;
-using netSharp.Configuration;
-using netSharp.Factories.Session.Base;
-using netSharp.Connectivity;
-
-namespace netSharp.Factories.Session
+namespace netSharp.Factories.Session.Base
 {
-    public sealed class SessionFactory : BaseSessionFactory
+    public class BaseSessionFactory
     {
-        public Connectivity.Session MakeNew(IPEndPoint _ipEndPoint, TcpClient _tcpClient = null,
-            SessionConfiguration _sessionConfiguration = null)
-        {
-            if (_ipEndPoint == null) throw new NullReferenceException("Session requires an IPEndpoint.");
-
-            var tcpClient = _tcpClient;
-            if (tcpClient == null)
-                tcpClient = new TcpClient();
-
-            if (_sessionConfiguration != null)
-                return new Connectivity.Session(tcpClient, _ipEndPoint, new CancellationTokenSource(),
-                    _sessionConfiguration);
-            return new Connectivity.Session(tcpClient, _ipEndPoint, new CancellationTokenSource(),
-                new SessionConfiguration());
-        }
     }
 }

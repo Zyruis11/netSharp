@@ -30,8 +30,6 @@
 // THE POSSIBILITY OF SUCH DAMAGE.
 // 
 
-//TODO: Support subsecond keepalives
-
 using System;
 using System.Net;
 using System.Net.Sockets;
@@ -45,11 +43,12 @@ namespace netSharp.Connectivity
 {
     public sealed class Session : BaseSession
     {
-        public Session(TcpClient _tcpClient, IPEndPoint _ipEndpoint, CancellationTokenSource _cancellationTokenSource, SessionConfiguration _sessionConfiguration = null)
+        public Session(TcpClient _tcpClient, IPEndPoint _ipEndpoint, CancellationTokenSource _cancellationTokenSource,
+            SessionConfiguration _sessionConfiguration = null)
         {
             tcpClient = _tcpClient;
 
-            if(!tcpClient.Connected)
+            if (!tcpClient.Connected)
                 tcpClient.Connect(_ipEndpoint);
 
             ApplySessionConfiguration(_sessionConfiguration ?? new SessionConfiguration());
@@ -58,7 +57,8 @@ namespace netSharp.Connectivity
 
             LocalEndpointGuid = ShortGuid.New();
 
-            SessionState = (byte)SessionStates.Opening; // Set the session state to opening, it will transition to Open once the RemoteEndpointGuid has been received.
+            SessionState = (byte) SessionStates.Opening;
+                // Set the session state to opening, it will transition to Open once the RemoteEndpointGuid has been received.
 
             ReadDataAsync(); // Begin a non-blocking read on the Tcpclient of the session.
         }
@@ -121,7 +121,7 @@ namespace netSharp.Connectivity
 
                         if (payloadBytesRead == 0)
                         {
-                            IdleTime = MaxIdleTime;
+                            //IdleTime = MaxIdleTime;
                             return;
                         }
                         payloadBytesRemaining -= payloadBytesRead;
