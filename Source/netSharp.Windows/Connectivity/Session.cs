@@ -30,28 +30,60 @@
 // THE POSSIBILITY OF SUCH DAMAGE.
 // 
 
+//TODO: Support subsecond keepalives
+
 using System;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
+using netSharp.Configuration;
+using netSharp.Connectivity.Base;
 using netSharp.Factories.DataStream;
-using netSharp.Sessions.Base;
+using netSharp.Other;
 
-namespace netSharp.Sessions
+namespace netSharp.Connectivity
 {
     public sealed class Session : BaseSession
     {
-        public Session(TcpClient _tcpClient)
+        public Session(TcpClient _tcpClient, IPEndPoint _ipEndpoint, CancellationTokenSource _cancellationTokenSource, SessionConfiguration _sessionConfiguration = null)
         {
             tcpClient = _tcpClient;
-            Initialize();
+
+            if(!tcpClient.Connected)
+                tcpClient.Connect(_ipEndpoint);
+
+            ApplySessionConfiguration(_sessionConfiguration ?? new SessionConfiguration());
+
+            GetCancellationToken(_cancellationTokenSource);
+
+            LocalEndpointGuid = ShortGuid.New();
+
+            SessionState = (byte)SessionStates.Opening; // Set the session state to opening, it will transition to Open once the RemoteEndpointGuid has been received.
+
+            ReadDataAsync(); // Begin a non-blocking read on the Tcpclient of the session.
         }
 
-        public Session(IPEndPoint _ipEndPoint)
+        private void ApplySessionConfiguration(SessionConfiguration _sessionConfiguration)
         {
-            tcpClient = new TcpClient();
-            tcpClient.Connect(_ipEndPoint);
-            Initialize();
+            if (_sessionConfiguration.MaxReconnectAttempts > 0)
+                MaxReconnectAttempts = _sessionConfiguration.MaxReconnectAttempts;
+
+            if (_sessionConfiguration.ReconnectionCounterResetInterval >= 10)
+                ReconnectionCounterResetInterval = _sessionConfiguration.ReconnectionCounterResetInterval;
+
+            if (_sessionConfiguration.ConnectionTimeout >= 1000)
+                ConnectionTimeout = _sessionConfiguration.ConnectionTimeout;
+
+            if (_sessionConfiguration.KeepaliveSendInterval >= 1)
+                KeepaliveSendInterval = _sessionConfiguration.KeepaliveSendInterval;
+
+            if (_sessionConfiguration.KeepaliveDeadTime >= 4)
+                KeepaliveDeadTime = _sessionConfiguration.KeepaliveDeadTime;
+
+            if (_sessionConfiguration.MaxDataKeyValueStoreDepth <= 25)
+                MaxDataKeyValueStoreDepth = _sessionConfiguration.MaxDataKeyValueStoreDepth;
+
+            UseKeepalives = _sessionConfiguration.UseKeepalives;
         }
 
         public async void ReadDataAsync()
@@ -123,13 +155,6 @@ namespace netSharp.Sessions
             {
                 SessionErrorTrigger("Session is not connected.");
             }
-        }
-
-        private void Initialize()
-        {
-            cancellationTokenSource = new CancellationTokenSource();
-            cancellationToken = cancellationTokenSource.Token;
-            ReadDataAsync();
         }
     }
 }

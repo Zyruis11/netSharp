@@ -34,8 +34,8 @@ using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Timers;
+using netSharp.Connectivity;
 using netSharp.Events;
-using netSharp.Sessions;
 
 namespace netSharp.Endpoint
 {
@@ -56,7 +56,7 @@ namespace netSharp.Endpoint
 
         public BaseEndpoint()
         {
-            throw new ArgumentException("Don't instatiate this class directly, use one of the child classes.");
+
         }
 
         #region Private Properties
@@ -75,8 +75,8 @@ namespace netSharp.Endpoint
         protected SessionManager sessionManager { get; set; }
         protected int MaxIdleTime { get; set; }
         protected int MinIdleTime { get; set; }
-        protected bool UseKeepalives { get; set; }
         protected int SessionManagerIntervalMilliseconds { get; set; }
+        protected bool UseMaxIdleTimerScaling { get; set; }
 
         #endregion
 

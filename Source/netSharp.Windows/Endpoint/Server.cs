@@ -34,8 +34,9 @@ using System;
 using System.Net;
 using System.Net.Sockets;
 using netSharp.Configuration;
+using netSharp.Connectivity;
+using netSharp.Factories.Session;
 using netSharp.Other;
-using netSharp.Sessions;
 
 namespace netSharp.Endpoint
 {
@@ -50,7 +51,7 @@ namespace netSharp.Endpoint
 
             ApplyServerConfiguration(_serverConfiguration ?? new ServerConfiguration());
 
-            Guid = ShortGuidGenerator.New();
+            Guid = ShortGuid.New();
         }
 
         private TcpListener tcpListener { get; }
@@ -77,6 +78,9 @@ namespace netSharp.Endpoint
             tcpListener.Stop();
         }
 
+        /// <summary>
+        ///     Listens for new TcpClients using a TcpListener, when a new TcpClient connects, it is passed to the Session Factory.
+        /// </summary>
         private async void SessionListener()
         {
             while (IsListening)
@@ -85,7 +89,10 @@ namespace netSharp.Endpoint
                 if (!IsDisposed)
                 {
                     //if (SessionDictionary.Count >= MaxSessions) //TODO: Close longest inactive session to acomodate new session
-                    //var session = new Session(tcpClient); //TODO: Implement session factory pattern
+                    var sessionFactory = new SessionFactory();
+
+                    //TODO: Pass the new TcpClient to the SessionFactory and create the session.
+
                     //AddSession(session);
                 }
             }
@@ -119,7 +126,7 @@ namespace netSharp.Endpoint
             if (_serverConfiguration.SessionManagerIntervalMilliseconds > 500)
                 SessionManagerIntervalMilliseconds = _serverConfiguration.SessionManagerIntervalMilliseconds;
 
-            UseKeepalives = _serverConfiguration.UseKeepalives;
+            UseMaxIdleTimerScaling = _serverConfiguration.UseMaxIdleTimerScaling;
         }
     }
 }

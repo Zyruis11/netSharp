@@ -30,12 +30,13 @@
 // THE POSSIBILITY OF SUCH DAMAGE.
 // 
 
+using System;
 using System.Net;
 using System.Net.Sockets;
 using netSharp.Configuration;
+using netSharp.Connectivity;
 using netSharp.Endpoint;
 using netSharp.Factories.Endpoint.Base;
-using netSharp.Sessions;
 
 namespace netSharp.Factories.Endpoint
 {
@@ -43,6 +44,8 @@ namespace netSharp.Factories.Endpoint
     {
         public Server MakeNew(IPEndPoint _ipEndPoint, ServerConfiguration _serverConfiguration = null)
         {
+            if (_ipEndPoint == null) throw new NullReferenceException("Server requires IPEndpoint.");
+
             if (_serverConfiguration != null)
                 return new Server(new SessionManager(), _ipEndPoint, new TcpListener(_ipEndPoint), _serverConfiguration);
             return new Server(new SessionManager(), _ipEndPoint, new TcpListener(_ipEndPoint));

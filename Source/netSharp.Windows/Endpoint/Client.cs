@@ -33,8 +33,8 @@
 using System;
 using System.Net;
 using netSharp.Configuration;
+using netSharp.Connectivity;
 using netSharp.Other;
-using netSharp.Sessions;
 
 namespace netSharp.Endpoint
 {
@@ -48,7 +48,7 @@ namespace netSharp.Endpoint
 
             ApplyClientConfiguration(_clientConfiguration ?? new ClientConfiguration());
 
-            Guid = ShortGuidGenerator.New();
+            Guid = ShortGuid.New();
         }
 
         public void Dispose()
@@ -69,7 +69,7 @@ namespace netSharp.Endpoint
             if (_clientConfiguration.MaxIdleTime > MinIdleTime)
                 MaxIdleTime = _clientConfiguration.MaxIdleTime;
 
-            UseKeepalives = _clientConfiguration.UseKeepalives;
+            UseMaxIdleTimerScaling = _clientConfiguration.UseMaxIdleTimerScaling;
         }
     }
 }

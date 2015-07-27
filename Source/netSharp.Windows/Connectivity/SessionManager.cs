@@ -32,7 +32,7 @@
 
 using System;
 
-namespace netSharp.Sessions
+namespace netSharp.Connectivity
 {
     public sealed class SessionManager
     {

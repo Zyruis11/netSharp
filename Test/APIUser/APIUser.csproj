@@ -51,7 +51,7 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Source\netSharp.Windows\netSharp.csproj">
+    <ProjectReference Include="..\..\Source\netSharp.Windows\netSharp.csproj">
       <Project>{5776d090-cae8-492f-b15a-5530ef7a45cf}</Project>
       <Name>netSharp</Name>
     </ProjectReference>

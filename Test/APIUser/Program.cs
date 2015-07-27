@@ -35,7 +35,7 @@ namespace APIUser
         {
             var serverFactory = new ServerFactory();
             var serverConfig = new ServerConfiguration();
-            serverConfig.MaxIdleTime = 300;
+            bool configLoaded = serverConfig.LoadConfigurationFile("C:\\Configs\\Config.text");
             server = serverFactory.MakeNew(new IPEndPoint(IPAddress.Parse("127.0.0.1"), 3000), serverConfig);
         }
 

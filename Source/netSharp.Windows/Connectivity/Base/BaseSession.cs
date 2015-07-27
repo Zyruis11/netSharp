@@ -35,11 +35,11 @@ using System.Net.Sockets;
 using System.Threading;
 using netSharp.Events;
 
-namespace netSharp.Sessions.Base
+namespace netSharp.Connectivity.Base
 {
     public class BaseSession : IDisposable
     {
-        public enum SessionState
+        public enum SessionStates : byte
         {
             Open,
             Opening,
@@ -48,15 +48,21 @@ namespace netSharp.Sessions.Base
             Error
         }
 
+        public byte SessionState { get; set; }
         public bool IsDisposed { get; set; }
         public string RemoteEndpointGuid { get; set; }
         public string LocalEndpointGuid { get; set; }
         public double IdleTime { get; set; }
-        public double MaxIdleTime { get; set; }
+        public int ConnectionTimeout { get; set; }
+        public int KeepaliveSendInterval { get; set; }
+        public int KeepaliveDeadTime { get; set; }
+        public int MaxDataKeyValueStoreDepth { get; set; }
+        public int MaxReconnectAttempts { get; set; }
+        public int ReconnectionCounterResetInterval { get; set; }
+        public bool UseKeepalives { get; set; }
         public TcpClient tcpClient { get; set; }
         public CancellationToken cancellationToken { get; set; }
         public CancellationTokenSource cancellationTokenSource { get; set; }
-        public string SessionErrorMessage { get; set; }
 
         public void Dispose()
         {
@@ -64,11 +70,15 @@ namespace netSharp.Sessions.Base
             IsDisposed = true;
         }
 
-        public CancellationToken GetCancellationToken()
+        protected CancellationToken GetCancellationToken(CancellationTokenSource _cancellationTokenSource)
         {
-            if (cancellationTokenSource != null)
+            if (_cancellationTokenSource != null)
+            {
+                cancellationTokenSource = _cancellationTokenSource;
                 return cancellationTokenSource.Token;
-            return CancellationToken.None;
+            }
+            cancellationTokenSource = new CancellationTokenSource();
+            return cancellationTokenSource.Token;
         }
 
         #region Session Events

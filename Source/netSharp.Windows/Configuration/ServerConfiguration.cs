@@ -34,7 +34,7 @@ using netSharp.Configuration.Base;
 
 namespace netSharp.Configuration
 {
-    public sealed class ServerConfiguration : BaseConfiguration
+    public sealed class ServerConfiguration : BaseEndpointConfiguration
     {
         /// <summary>
         ///     Gets or sets the maximum number of peers allowed per server cluster.

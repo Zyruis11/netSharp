@@ -30,9 +30,14 @@
 // THE POSSIBILITY OF SUCH DAMAGE.
 // 
 
+using System;
+
 namespace netSharp.Factories.Session.Base
 {
     public class BaseSessionFactory
     {
+        public BaseSessionFactory()
+        {
+        }
     }
 }

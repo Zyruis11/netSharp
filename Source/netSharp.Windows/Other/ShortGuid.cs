@@ -30,34 +30,29 @@
 // THE POSSIBILITY OF SUCH DAMAGE.
 // 
 
-namespace netSharp.Configuration.Base
+using System;
+using System.Text;
+
+namespace netSharp.Other
 {
-    public class BaseConfiguration
+    public static class ShortGuid
     {
-        /// <summary>
-        ///     Gets or sets the maximum length of time in seconds that an idle session will be maintained.
-        /// </summary>
-        public int MaxIdleTime { get; set; } = 600;
+        public static string New(int _guidLength = 4)
+        {
+            var guidLength = _guidLength;
 
-        /// <summary>
-        ///     Gets or sets the minimum length of time in secodns that an idle session will be maintained.
-        /// </summary>
-        public int MinIdleTime { get; set; } = 30;
+            var charString = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 
-        /// <summary>
-        ///     Gets or sets the maximum number of sessions that will be allowed to connect.
-        /// </summary>
-        public virtual int MaxSessions { get; set; } = 10;
+            var builder = new StringBuilder();
+            char @char;
+            var random = new Random();
 
-        /// <summary>
-        ///     Gets or sets the bool allowing the Endpoint's Session Manager to use keepalives during session maintenance.
-        ///     Note: Keepalives do not reset the Idle timer when received, a session using Keepalives will still timeout.
-        /// </summary>
-        public bool UseKeepalives { get; set; } = true;
-
-        /// <summary>
-        ///     Gets or sets the interval that the Endpoint's Session Manager will evaluate the Endpoint's SessionDictionary.
-        /// </summary>
-        public int SessionManagerIntervalMilliseconds { get; set; } = 1000;
+            for (var i = 0; i < guidLength; i++)
+            {
+                @char = charString[random.Next(0, charString.Length)];
+                builder.Append(@char);
+            }
+            return builder.ToString();
+        }
     }
 }

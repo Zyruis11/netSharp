@@ -30,7 +30,7 @@
 // THE POSSIBILITY OF SUCH DAMAGE.
 // 
 
-using netSharp.Sessions;
+using netSharp.Connectivity;
 
 namespace netSharp.Interfaces
 {
